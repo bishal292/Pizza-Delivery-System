@@ -8,8 +8,8 @@ adminAuthRouter.post('/login',logIn);
 adminAuthRouter.post('/signup', signUp);
 adminAuthRouter.get('/logout',verifyToken,logOut);
 adminAuthRouter.patch('/changepassword',verifyToken, changePassword);
-adminAuthRouter.get('/forgotpassword', forgotpassword);
-adminAuthRouter.post('/resetpassword', resetpassword);
+adminAuthRouter.post('/forgotpassword', forgotpassword);
+adminAuthRouter.patch('/resetpassword/:token', resetpassword);
 adminAuthRouter.get('/admin-info', verifyToken,AdminInfo);
 
 
