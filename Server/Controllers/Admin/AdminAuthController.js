@@ -33,7 +33,13 @@ export const logIn = async (req, res, next) => {
       maxAge,
     });
 
-    res.status(200).send("Logged In as Admin");
+    res.status(200).json({
+      message:"Logged In as Admin",
+      _id:user._id,
+      name:user.name,
+      email:user.email,
+      role:'admin'
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
@@ -73,7 +79,13 @@ export const signUp = async (req, res, next) => {
       maxAge,
     });
 
-    res.status(201).send("Admin Account Created Successfully");
+    res.status(201).json({
+      message:"Admin Created Successfully",
+      _id:user._id,
+      name:user.name,
+      email:user.email,
+      role:'admin'
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
@@ -219,8 +231,13 @@ export const resetpassword = async (req, res, next) => {
             maxAge,
           });
       
-          res.status(200).send("Logged In as Admin");
-
+          res.status(200).json({
+            message:"Password Reset Successfully!, And logged in as Admin",
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            role:'admin'
+          });
           
     } catch (error) {
         console.log(error.message);
@@ -238,7 +255,12 @@ export const AdminInfo = async (req, res, next) => {
         const user = await Admin.findById(userId).select("_id name email");
         if (!user) return res.status(400).send("User not found");
 
-        res.status(200).json(user);
+        res.status(200).json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            role:'admin'
+        });
     } catch (error) {
         console.log(error.message);
         res.status(500).send("Internal Server Error");        
