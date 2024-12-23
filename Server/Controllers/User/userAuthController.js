@@ -38,7 +38,7 @@ export const logIn = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role:'user'
+      role: "user",
     });
   } catch (error) {
     console.log(error.message);
@@ -81,7 +81,7 @@ export const signUp = async (req, res, next) => {
       _id: newUser._id,
       name: newUser.name,
       email: newUser.email,
-      role:'user'
+      role: "user",
     });
   } catch (error) {
     console.log(error.message);
@@ -153,24 +153,20 @@ export const forgotpassword = async (req, res, next) => {
         .status(400)
         .send("User not found with this email please provide a valid email");
 
-    if (user.passwordResetToken && Date.now() < user.passwordResetExpires) {
-      return res
-        .status(400)
-        .send(
-          "Password Reset Link is already sent to your email , Please check your email"
-        );
+    if (user.resetOTP && Date.now() < user.resetOTPExpires) {
+      return res.status(400).json({
+        message:
+          "Password Reset OTP is already sent to your email , Please check your email",
+      });
     }
 
     // instance method to create reset password token.
-    const resetToken = user.createResetPasswordToken();
+    const resetToken = user.createPasswordResetOTP();
     await user.save();
 
-    // Send Email to user with a link to reset password.
-    const resetUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/api/v1/user/resetpassword/${resetToken}`;
+    // Send Email to user with OTP to reset password
 
-    const message = `We have received a password reset request for your account, Please use the below link to reset your password : \n\n${resetUrl}\n\nThid reset Password link is valid till next 10 minutes only. If you are not trying to reset your password, please ignore this email!`;
+    const message = `We have received a password reset request for your account, Please use the below OTP to reset your password : \n\n${resetToken}\n\nThis reset OTP is valid till next 10 minutes only. If you are not trying to reset your password, please ignore this email!`;
     try {
       await sendEmail({
         email: user.email,
@@ -200,24 +196,28 @@ export const forgotpassword = async (req, res, next) => {
 
 export const resetpassword = async (req, res, next) => {
   try {
-    const token = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
+    const { email, otp, password, confirmPassword } = req.body;
 
-    // Find user with the token and token expiry time greater than current time.
-    const user = await User.findOne({
-      passwordResetToken: token,
-      passwordResetExpires: { $gt: Date.now() },
-    });
-    if (!user)
-      return res.status(400).send("Invalid or Expired Token, Please try again");
-
-    const { password, confirmPassword } = req.body;
-    if (!password || !confirmPassword)
+    if (!email || !otp || !password || !confirmPassword)
       return res
         .status(400)
-        .send("Please provide password and confirm password");
+        .send("Please provide email, OTP, password and confirm password");
+
+    if (!validator.isEmail(email))
+      return res
+        .status(400)
+        .send("Entered Email is not valid, Please provide a valid email");
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(400)
+        .send("User not found with this email please provide a valid email");
+
+    if (!user.resetOTP || Date.now() > user.resetOTPExpires)
+      return res.status(400).send("Invalid or Expired OTP, Please try again");
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest('hex');
+    if (hashedOTP !== user.resetOTP)
+      return res.status(400).send("Invalid OTP, Please try again");
 
     if (password !== confirmPassword)
       return res
@@ -231,8 +231,8 @@ export const resetpassword = async (req, res, next) => {
     // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
 
     user.password = password;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
+    user.resetOTP = undefined;
+    user.resetOTPExpires = undefined;
     await user.save();
 
     // res.status(200).send("Password Reset Successfully! Please login with your new password");
@@ -248,7 +248,7 @@ export const resetpassword = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role:'user'
+      role: "user",
     });
   } catch (error) {
     console.log(error.message);
@@ -271,7 +271,7 @@ export const UserInfo = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role:'user'
+      role: "user",
     });
   } catch (error) {
     console.log(error.message);

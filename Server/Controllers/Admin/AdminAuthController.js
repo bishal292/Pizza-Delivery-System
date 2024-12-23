@@ -29,7 +29,7 @@ export const logIn = async (req, res, next) => {
 
     res.cookie("jwt", createToken(user.email, user._id), {
       secure: process.env.NODE_ENV === "production",
-      sameSite: true,
+      sameSite: false,
       maxAge,
     });
 
@@ -75,15 +75,15 @@ export const signUp = async (req, res, next) => {
 
     res.cookie("jwt", createToken(newUser.email, newUser._id), {
       secure: process.env.NODE_ENV === "production",
-      sameSite: true,
+      sameSite: false,
       maxAge,
     });
 
     res.status(201).json({
       message:"Admin Created Successfully",
-      _id:user._id,
-      name:user.name,
-      email:user.email,
+      _id:newUser._id,
+      name:newUser.name,
+      email:newUser.email,
       role:'admin'
     });
   } catch (error) {
@@ -154,24 +154,19 @@ export const forgotpassword = async (req, res, next) => {
         .status(400)
         .send("User not found with this email please provide a valid email");
 
-    if (user.passwordResetToken && (Date.now() < user.passwordResetExpires)) {
+    if (user.resetOTP && (Date.now() < user.resetOTPExpires)) {
       return res
         .status(400)
         .send(
-          "Password Reset Link is already sent to your email , Please check your email"
+          "Password Reset OTP is already sent to your email , Please check your email"
         );
     }
 
     // instance method to create reset password token.
-    const resetToken = user.createResetPasswordToken();
+    const resetToken = user.createPasswordResetOTP();
     await user.save();
 
-    // Send Email to user with a link to reset password.
-    const resetUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/api/v1/admin/resetpassword/${resetToken}`;
-
-    const message = `We have received a password reset request for your account, Please use the below link to reset your password : \n\n${resetUrl}\n\nThid reset Password link is valid till next 10 minutes only. If you are not trying to reset your password, please ignore this email!`;
+    const message = `We have received a password reset request for your account, Please use the below OTP to reset your password : \n\n${resetToken}\n\nThid reset OTP is valid till next 10 minutes only. If you are not trying to reset your password, please ignore this email!`;
     try {
       await sendEmail({
         email: user.email,
@@ -182,7 +177,7 @@ export const forgotpassword = async (req, res, next) => {
       res
         .status(200)
         .send(
-          "Reset Password Link Sent to your email, please check your email"
+          "Reset Password OTP Sent to your email, please check your email"
         );
     } catch (error) {
       console.log(error.message);
@@ -227,7 +222,7 @@ export const resetpassword = async (req, res, next) => {
 
         res.cookie("jwt", createToken(user.email, user._id), {
             secure: process.env.NODE_ENV === "production",
-            sameSite: true,
+            sameSite: false,
             maxAge,
           });
       

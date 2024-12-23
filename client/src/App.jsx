@@ -1,10 +1,15 @@
 import React, { useEffect } from "react";
-import { Button } from "./components/ui/button";
 import { useAppStore } from "./Store/store";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import AdminLayout from "./pages/AdminLayout";
 import AdminProfile from "./pages/AdminPages/AdminProfile";
 import AdminInventory from "./pages/AdminPages/AdminInventory";
-import { createBrowserRouter, Navigate, RouterProvider, useLocation } from "react-router-dom";
 import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import AdminAuth from "./pages/AdminPages/AdminAuth";
 import UserLayout from "./pages/UserLayout";
@@ -12,48 +17,93 @@ import UserHome from "./pages/UserPages/UserHome";
 import UserProfile from "./pages/UserPages/UserProfile";
 import UserCart from "./pages/UserPages/UserCart";
 import UserAuth from "./pages/UserPages/UserAuth";
+import { apiClient } from "./utils/api-client";
+import { GET_LOGGED_USER_INFO } from "./utils/constant";
 
+// Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
   const location = useLocation();
   const { userInfo } = useAppStore();
-  const isAuthenticated = !!userInfo;
-  const isAdmin = userInfo?.role === "admin"; // Check if user is admin.
+  const isAuthenticated = !!userInfo; // If there is userInfo, then isAuthenticated is true
+  const isAdmin = userInfo?.role === "admin";
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
+  // if user is not authenticated, redirect to login page for the respective user
   if (!isAuthenticated) {
-    // Redirect to /admin/auth if trying to access any admin route
-    if (location.pathname.startsWith("/admin")) {
-      return <Navigate to="/admin/auth" replace />;
-    }
-    return <Navigate to="/auth" replace />; // Redirect to /auth for non-authenticated users
+    const targetPath = isAdminRoute
+      ? "/admin/auth/login"
+      : "/pizzeria/auth/login";
+    return <Navigate to={targetPath} replace />;
   }
 
-  if (!isAdmin && location.pathname.startsWith("/admin")) {
-    return <Navigate to="/user/dashboard" replace />; // Redirect to user dashboard if not an admin
+  if (!isAdmin && isAdminRoute) {
+    console.error("Unauthorized Access: User is not an Admin");
+    return <Navigate to="/pizzeria/home" replace />;
   }
 
   return children;
 };
 
-
-// Higher order component to check if user is authenticated and redirect to the appropriate dashboard.
+// Auth Routes Component
 const AuthRoutes = ({ children }) => {
   const { userInfo } = useAppStore();
-  const isAuthenticated = !!userInfo;
-  const isAdmin = userInfo?.role === "admin";
-
-  if (isAuthenticated) {
-    // Redirect authenticated users to their respective dashboard
-    return isAdmin ? (
-      <Navigate to="/admin/dashboard" replace />
-    ) : (
-      <Navigate to="/user/dashboard" replace />
-    );
+  if (userInfo?.role) {
+    if (userInfo?.role && userInfo.role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else {
+      return <Navigate to="/pizzeria/home" replace />;
+    }
   }
 
-  return children; // Allow unauthenticated users to see the login page
+  return children;
 };
 
+// Auth Wrapper Component
+const AuthWrapper = ({ Component }) => {
+  const { action } = useParams();
+  const validActions = ["login", "signup", "forgot", "resetPassword"];
+  console.log(action);
+
+  if (!validActions.includes(action)) {
+    return <Navigate to="/pizzeria/auth/login" replace />;
+  }
+
+  return <Component action={action} />;
+};
+
+// Router Configuration
 const router = createBrowserRouter([
+  {
+    path: "/admin/auth/:action",
+    element: (
+      <AuthRoutes>
+        <AuthWrapper Component={AdminAuth} />
+      </AuthRoutes>
+    ),
+  },
+  {
+    path: "/pizzeria/auth/:action",
+    element: (
+      <AuthRoutes>
+        <AuthWrapper Component={UserAuth} />
+      </AuthRoutes>
+    ),
+  },
+  {
+    path: "/pizzeria",
+    element: (
+      <PrivateRoutes>
+        <UserLayout />
+      </PrivateRoutes>
+    ),
+    children: [
+      { index: true, element: <Navigate to="home" replace /> },
+      { path: "home", element: <UserHome /> },
+      { path: "profile", element: <UserProfile /> },
+      { path: "cart", element: <UserCart /> },
+      // { path: "*", element: <Navigate to="home" /> },
+    ],
+  },
   {
     path: "/admin",
     element: (
@@ -62,89 +112,41 @@ const router = createBrowserRouter([
       </PrivateRoutes>
     ),
     children: [
-      {
-        index: true, // Redirect Authenticated admin from /admin to /admin/dashboard
-        element: <Navigate to="dashboard" replace />,
-      },
-      {
-        path: "dashboard",
-        element: <AdminDashboard />,
-      },
-      {
-        path: "profile",
-        element: <AdminProfile />,
-
-      },
-      {
-        path:"inventory",
-        element:<AdminInventory />
-      },
-      {
-        path:"*",
-        element:<Navigate to="dashboard" />
-      }
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: "dashboard", element: <AdminDashboard /> },
+      { path: "profile", element: <AdminProfile /> },
+      { path: "inventory", element: <AdminInventory /> },
+      { path: "*", element: <Navigate to="dashboard" /> },
     ],
-  },
-  {
-    path: "/admin/auth",
-    element: (
-      <AuthRoutes>
-        <AdminAuth />
-      </AuthRoutes>
-    ),
-  },
-  {
-    path: "/",
-    element: (
-      <PrivateRoutes>
-        <UserLayout />
-      </PrivateRoutes>
-    ),
-    children: [
-      {
-        index: true, // Redirect Authenticated admin from /admin to /admin/dashboard
-        element: <Navigate to="home" replace />,
-      },
-      {
-        path: "home",
-        element: <UserHome />,
-      },
-      {
-        path: "profile",
-        element: <UserProfile />,
-
-      },
-      {
-        path:"cart",
-        element:<UserCart />
-      }
-    ],
-  },
-  {
-    path: "/auth",
-    element: (
-      <AuthRoutes>
-        <UserAuth />
-      </AuthRoutes>
-    ),
   },
   {
     path: "*",
-    element: <Navigate to="/auth" />,
-  }
+    element: <Navigate to="/pizzeria/auth/login" />,
+  },
 ]);
 
+// App Component
 const App = () => {
-  const { userInfo } = useAppStore();
-  useEffect(()=>{
+  const { userInfo, setUserInfo } = useAppStore();
 
-  },userInfo);
-  return(
-    <>
-    <RouterProvider router={router} />
-    </>
-  )
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await apiClient.get(GET_LOGGED_USER_INFO, {
+          withCredentials: true,
+        });
+        setUserInfo(response.data);
+      } catch (error) {
+        console.error(error.response?.data || error.message);
+      }
+    };
+
+    if (!userInfo) {
+      fetchData();
+    }
+  }, [userInfo, setUserInfo]);
+
+  return <RouterProvider router={router} />;
 };
 
 export default App;
-

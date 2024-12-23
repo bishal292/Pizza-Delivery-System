@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { UserAuthSlice, userUtilSlice } from "./slices/userSlices";
-import { AdminAuthSlice, adminUtilSlice } from "./slices/adminSlices";
 
 
 
@@ -19,14 +18,3 @@ export const useAppStore = create()((...a) => ({
   ...userUtilSlice(...a),
   ...commonSlices(...a),
 }));
-
-// export const useAdminStore = create()((...a) => ({
-//   ...AdminAuthSlice(...a),
-//   ...adminUtilSlice(...a),
-// }));
-
-// export const useCommonStore = create()((...a) => ({
-//     ...commonSlices(...a),
-// }));
-
-

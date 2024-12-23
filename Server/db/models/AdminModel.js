@@ -12,8 +12,8 @@ const AdminSchema = new mongoose.Schema({
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+  resetOTP: String,
+  resetOTPExpires: Date,
 });
 
 AdminSchema.pre("save", async function (next) {
@@ -26,16 +26,16 @@ AdminSchema.pre("save", async function (next) {
 });
 
 // Instance method to create password reset token on Admin instances.
-AdminSchema.methods.createResetPasswordToken = function () {
+AdminSchema.methods.createPasswordResetOTP = function () {
 
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = (Math.floor(100000 + Math.random() * 900000)).toString();
   
-  this.passwordResetToken = crypto
+  this.resetOTP = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
  
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  this.resetOTPExpires = Date.now() + 10 * 60 * 1000 ;
   return resetToken;
 };
 

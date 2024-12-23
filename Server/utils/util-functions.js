@@ -39,6 +39,10 @@ export const checkPasswordStrength = (password, res) => {
   }
 };
 
+/**
+ * Function to send email to user.
+ * @param {Object} option Object containing email, subject and message.
+ */
 export function sendEmail(option) {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,

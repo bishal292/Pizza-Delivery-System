@@ -11,7 +11,7 @@ userAuthRouter.post('/signup', signUp);
 userAuthRouter.get('/logout',verifyToken,logOut);
 userAuthRouter.patch('/changepassword',verifyToken, changePassword);
 userAuthRouter.post('/forgotpassword', forgotpassword);
-userAuthRouter.patch('/resetpassword/:token', resetpassword);
+userAuthRouter.patch('/resetpassword/', resetpassword);
 userAuthRouter.get('/user-info', verifyToken,UserInfo);
 
 

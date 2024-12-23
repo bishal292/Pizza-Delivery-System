@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import AdminRouter from './Routes/Admin/AdminRoutes.js';
 import UserRouter from './Routes/User/UserRoutes.js';
+import { getUserInfo, verifyToken } from './Middlewares/AuthMiddleware.js';
 
 dotenv.config();
 
@@ -20,14 +21,14 @@ app.use(cookieParser());
 app.use(cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH','DELETE'],
+    methods: ['GET', 'POST', 'PATCH'],
 }));
 
-
-app.use('/',(req, res, next) => {
-    console.log(`Request Method: ${req.method} Request URL: ${req.url}`);
-    next();    
+// Middleware to get logged user info along with its role(Admin | user).
+app.use("*",(req, res, next) => {
+    next();
 });
+app.use("/api/v1/auth/get-user-info",verifyToken,getUserInfo);
 
 app.use('/api/v1/admin/',AdminRouter);
 app.use('/api/v1/user/',UserRouter);

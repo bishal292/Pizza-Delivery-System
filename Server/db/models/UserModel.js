@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -31,8 +32,8 @@ const UserSchema = new mongoose.Schema({
         default: [],
     },
     passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
+    resetOTP: String,
+    resetOTPExpires: Date,
 });
 
 
@@ -45,16 +46,15 @@ UserSchema.pre("save", async function (next) {
     next();
 });
 
-UserSchema.methods.createResetPasswordToken = function () {
-
-    const resetToken = crypto.randomBytes(32).toString("hex");
+UserSchema.methods.createPasswordResetOTP = function () {
+    const resetToken = (Math.floor(100000 + Math.random() * 900000)).toString();
     
-    this.passwordResetToken = crypto
+    this.resetOTP = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
    
-    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+    this.resetOTPExpires = Date.now() + 10 * 60 * 1000 ;
     return resetToken;
   };
 
