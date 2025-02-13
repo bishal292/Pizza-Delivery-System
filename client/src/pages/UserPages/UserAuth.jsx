@@ -27,7 +27,6 @@ const UserAuth = ({ action }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [secretKey, setSecretKey] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpgenerated, setOtpgenerated] = useState(false);
@@ -63,10 +62,6 @@ const UserAuth = ({ action }) => {
     }
     if (!name.length) {
       toast.error("Name is required");
-      return false;
-    }
-    if (!secretKey.length) {
-      toast.error("Secret Key is required");
       return false;
     }
     if (password.length < 3) {
@@ -126,7 +121,8 @@ const UserAuth = ({ action }) => {
           confirmPassword,
         });
         console.log(response);
-        if (response.status === 201 && response.data) {
+        if (response.status === 201) {
+          console.log(response.data);
           setUserInfo(response.data);
           toast.success("User Created successfully");
           navigate("/pizzeria/home");
@@ -137,8 +133,6 @@ const UserAuth = ({ action }) => {
           const status = error.response.status;
           if (status === 400) {
             toast.error("User Already Exists with this email or invalid email");
-          } else if (status === 401) {
-            toast.error("Invalid Secret Key");
           } else {
             toast.error("An unknown error occurred");
           }
@@ -172,18 +166,19 @@ const UserAuth = ({ action }) => {
       if (response.status === 200) {
         setOtpgenerated(true);
         toast.success("OTP sent to your email");
+        navigate("/pizzeria/auth/resetPassword");
       }
     } catch (error) {
       console.error("Error during forgot password:", error);
       if (error.response) {
-        const status = error.response.status;
         if (error.response.data.message) {
           setOtpgenerated(true);
           toast.error(error.response.data.message);
-        } else if (status === 400) {
+        }if (error.response.status === 400) {
           toast.error("User not found with this email");
-        } else {
-          toast.error("An unknown error occurred");
+        } else if (error.response.status === 409) {
+          toast.error("OTP already sent to your email");
+          navigate("/pizzeria/auth/resetPassword");
         }
       } else {
         toast.error("Network error. Please try again later.");
@@ -194,33 +189,48 @@ const UserAuth = ({ action }) => {
   };
 
   const handleResetPassword = async () => {
-    if (!otp.length || !email.length || !password.length || !confirmPassword.length) {
+    if (
+      otp.length < 6 ||
+      !email.length ||
+      !password.length ||
+      !confirmPassword.length 
+    ) {
       toast.error("All fields is required");
       return;
     }
+    if(password != confirmPassword){
+      toast.error("Password and Confirm Password must be same");
+      return;
+    }
     setIsSubmitting(true);
-    try{
-      const response = await apiClient.patch(USER_AUTH_RESET_PASS, { email, otp, password, confirmPassword });
-      if(response.status === 200){
+    try {
+      const response = await apiClient.patch(USER_AUTH_RESET_PASS, {
+        email,
+        otp,
+        password,
+        confirmPassword,
+      });
+      if (response.status === 200) {
         toast.success("Password reset successfully");
         navigate("/pizzeria/auth/login");
       }
-    }catch(error){
+    } catch (error) {
       console.error("Error during reset password:", error);
       if (error.response) {
         const status = error.response.status;
         if (status === 400) {
           toast.error("Invalid OTP");
-        } else {
+        } else if(status === 409){
+          toast.error("Old and new password cannot be same"); 
+        }else{
           toast.error("An unknown error occurred");
         }
       } else {
         toast.error("Network error. Please try again later.");
       }
-    }finally{
+    } finally {
       setIsSubmitting(false);
     }
-
   };
   return (
     <div className="w-screen h-screen flex items-center justify-center">
@@ -374,7 +384,7 @@ const UserAuth = ({ action }) => {
             case "resetPassword":
               return (
                 <>
-                  <div className="flex flex-col gap-5 w-full" >
+                  <div className="flex flex-col gap-5 w-full">
                     <InputOTP
                       maxLength={6}
                       pattern={REGEXP_ONLY_DIGITS}
@@ -394,11 +404,23 @@ const UserAuth = ({ action }) => {
                       </InputOTPGroup>
                     </InputOTP>
 
-                    <Input value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Enter Email" />
-                    <Input value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Enter new Password" />
-                    <Input value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
+                    <Input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter Email"
+                    />
+                    <Input
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter new Password"
+                    />
+                    <Input
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm Password"
+                    />
                   </div>
-                  <div className="my-1 mt-3" >
+                  <div className="my-1 mt-3">
                     Didn't receive OTP?
                     <Link
                       to="/pizzeria/auth/forgot"

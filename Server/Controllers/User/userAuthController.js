@@ -5,6 +5,7 @@ import validator from "validator";
 import { configDotenv } from "dotenv";
 import { checkPasswordStrength } from "../../utils/util-functions.js";
 import crypto from "crypto";
+import BlockedCookies from "../../db/models/BlockedCookies.js";
 
 configDotenv();
 
@@ -76,7 +77,7 @@ export const signUp = async (req, res, next) => {
       maxAge,
     });
 
-    res.status(200).json({
+    res.status(201).json({
       message: "User Account Created Successfully",
       _id: newUser._id,
       name: newUser.name,
@@ -94,6 +95,7 @@ export const logOut = async (req, res, next) => {
     const userId = req.userId;
     if (!userId) return res.status(400).send("You are not logged in");
     res.clearCookie("jwt");
+    BlockedCookies.create({ cookie: req.cookies.jwt });
     res.status(200).json({
       message: "logged Out Successfully",
     });
@@ -154,7 +156,7 @@ export const forgotpassword = async (req, res, next) => {
         .send("User not found with this email please provide a valid email");
 
     if (user.resetOTP && Date.now() < user.resetOTPExpires) {
-      return res.status(400).json({
+      return res.status(409).json({
         message:
           "Password Reset OTP is already sent to your email , Please check your email",
       });
@@ -226,7 +228,7 @@ export const resetpassword = async (req, res, next) => {
 
     if (await bcrypt.compare(password, user.password))
       return res
-        .status(400)
+        .status(409)
         .send("New Password cannot be same as old password");
     // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
 

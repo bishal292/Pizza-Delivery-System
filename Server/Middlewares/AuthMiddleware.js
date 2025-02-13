@@ -2,11 +2,16 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { User } from "../db/models/UserModel.js";
 import { Admin } from "../db/models/AdminModel.js";
+import BlockedCookies from "../db/models/BlockedCookies.js";
 dotenv.config();
 
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
     const token = req.cookies.jwt;
+    console.log(token);
     if(!token) return res.status(401).send("You are not Authenticated.");
+    const cookiee = await BlockedCookies.findOne({cookie: token});
+    console.log(cookiee);
+    if(cookiee) return res.status(401).send("You are not Authenticated,Cookie expired.");
     jwt.verify(token, process.env.JWT_KEY, async (err, user) => {
 
         if(err) return res.status(403).send("token not valid!");

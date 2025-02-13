@@ -6,6 +6,7 @@ import cors from 'cors';
 import AdminRouter from './Routes/Admin/AdminRoutes.js';
 import UserRouter from './Routes/User/UserRoutes.js';
 import { getUserInfo, verifyToken } from './Middlewares/AuthMiddleware.js';
+import { logOut } from './Controllers/User/userAuthController.js';
 
 dotenv.config();
 
@@ -25,10 +26,12 @@ app.use(cors({
 }));
 
 // Middleware to get logged user info along with its role(Admin | user).
-app.use("*",(req, res, next) => {
-    next();
-});
-app.use("/api/v1/auth/get-user-info",verifyToken,getUserInfo);
+// app.use("*",(req, res, next) => {
+//     console.log(req);
+//     next();
+// });
+
+app.get("/api/v1/auth/get-user-info",verifyToken,getUserInfo);
 
 app.use('/api/v1/admin/',AdminRouter);
 app.use('/api/v1/user/',UserRouter);

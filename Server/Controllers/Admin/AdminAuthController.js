@@ -5,6 +5,7 @@ import validator from "validator";
 import { configDotenv } from "dotenv";
 import { checkPasswordStrength } from "../../utils/util-functions.js";
 import crypto from "crypto";
+import BlockedCookies from "../../db/models/BlockedCookies.js";
 
 configDotenv();
 
@@ -97,6 +98,7 @@ export const logOut = async (req, res, next) => {
     const userId = req.userId;
     if (!userId) return res.status(400).send("You are not logged in");
     res.clearCookie("jwt");
+    BlockedCookies.create({ cookie: req.cookies.jwt });
     res.status(200).send("Logged Out Successfully");
   } catch (error) {
     console.log(error.message);
@@ -156,7 +158,7 @@ export const forgotpassword = async (req, res, next) => {
 
     if (user.resetOTP && (Date.now() < user.resetOTPExpires)) {
       return res
-        .status(400)
+        .status(409)
         .send(
           "Password Reset OTP is already sent to your email , Please check your email"
         );
@@ -195,50 +197,65 @@ export const forgotpassword = async (req, res, next) => {
 };
 
 export const resetpassword = async (req, res, next) => {
-    try {
-        const token = crypto.createHash("sha256").update(req.params.token).digest("hex");
-
-        // Find user with the token and token expiry time greater than current time.
-        const user = await Admin.findOne({
-            passwordResetToken: token,
-            passwordResetExpires: { $gt: Date.now() },
-        });
-        if (!user) return res.status(400).send("Invalid or Expired Token, Please try again");
-
-        const { password , confirmPassword } = req.body;
-        if (!password || !confirmPassword) return res.status(400).send("Please provide password and confirm password");
-
-        if (password !== confirmPassword) return res.status(400).send("Password and Confirm Password must be same.");
-
-        if(await bcrypt.compare(password, user.password)) return res.status(400).send("New Password cannot be same as old password");
-        // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
-
-        user.password = password;
-        user.passwordResetToken = undefined;
-        user.passwordResetExpires = undefined;
-        await user.save();
-
-        // res.status(200).send("Password Reset Successfully! Please login with your new password");
-
-        res.cookie("jwt", createToken(user.email, user._id), {
-            secure: process.env.NODE_ENV === "production",
-            sameSite: false,
-            maxAge,
-          });
-      
-          res.status(200).json({
-            message:"Password Reset Successfully!, And logged in as Admin",
-            _id:user._id,
-            name:user.name,
-            email:user.email,
-            role:'admin'
-          });
-          
-    } catch (error) {
-        console.log(error.message);
-        res.status(500).send("Internal Server Error");
-    }
-
+   try {
+       const { email, otp, password, confirmPassword } = req.body;
+   
+       if (!email || !otp || !password || !confirmPassword)
+         return res
+           .status(400)
+           .send("Please provide email, OTP, password and confirm password");
+   
+       if (!validator.isEmail(email))
+         return res
+           .status(400)
+           .send("Entered Email is not valid, Please provide a valid email");
+       const user = await Admin.findOne({ email });
+       if (!user)
+         return res
+           .status(400)
+           .send("Admin not found with this email please provide a valid email");
+   
+       if (!user.resetOTP || Date.now() > user.resetOTPExpires)
+         return res.status(400).send("Invalid or Expired OTP, Please try again");
+       const hashedOTP = crypto.createHash("sha256").update(otp).digest('hex');
+       if (hashedOTP !== user.resetOTP)
+         return res.status(400).send("Invalid OTP, Please try again");
+   
+       if (password !== confirmPassword)
+         return res
+           .status(400)
+           .send("Password and Confirm Password must be same.");
+   
+       if (await bcrypt.compare(password, user.password))
+         return res
+           .status(409)
+           .send("New Password cannot be same as old password");
+       // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
+   
+       user.password = password;
+       user.resetOTP = undefined;
+       user.resetOTPExpires = undefined;
+       await user.save();
+   
+       // res.status(200).send("Password Reset Successfully! Please login with your new password");
+   
+       res.cookie("jwt", createToken(user.email, user._id), {
+         secure: process.env.NODE_ENV === "production",
+         sameSite: true,
+         maxAge,
+       });
+   
+       res.status(200).json({
+         message: "Password Reset Successfull! You are logged in.",
+         _id: user._id,
+         name: user.name,
+         email: user.email,
+         role: "user",
+       });
+     } catch (error) {
+       console.log(error.message);
+       res.status(500).send("Internal Server Error");
+     }
 };
 
 export const AdminInfo = async (req, res, next) => {

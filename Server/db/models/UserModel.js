@@ -54,7 +54,7 @@ UserSchema.methods.createPasswordResetOTP = function () {
       .update(resetToken)
       .digest("hex");
    
-    this.resetOTPExpires = Date.now() + 10 * 60 * 1000 ;
+    this.resetOTPExpires = Date.now() + 15 * 60 * 1000 ;
     return resetToken;
   };
 

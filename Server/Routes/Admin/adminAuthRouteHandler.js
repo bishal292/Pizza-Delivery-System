@@ -9,7 +9,7 @@ adminAuthRouter.post('/signup', signUp);
 adminAuthRouter.get('/logout',verifyToken,logOut);
 adminAuthRouter.patch('/changepassword',verifyToken, changePassword);
 adminAuthRouter.post('/forgotpassword', forgotpassword);
-adminAuthRouter.patch('/resetpassword/:token', resetpassword);
+adminAuthRouter.patch('/resetpassword', resetpassword);
 adminAuthRouter.get('/admin-info', verifyToken,AdminInfo);
 
 
