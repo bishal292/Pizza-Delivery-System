@@ -19,6 +19,7 @@ import UserCart from "./pages/UserPages/UserCart";
 import UserAuth from "./pages/UserPages/UserAuth";
 import { apiClient } from "./utils/api-client";
 import { GET_LOGGED_USER_INFO } from "./utils/constant";
+import AdminOrders from "./pages/AdminPages/AdminOrders";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
@@ -116,6 +117,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "profile", element: <AdminProfile /> },
       { path: "inventory", element: <AdminInventory /> },
+      { path: "orders", element: <AdminOrders /> },
       { path: "*", element: <Navigate to="dashboard" /> },
     ],
   },

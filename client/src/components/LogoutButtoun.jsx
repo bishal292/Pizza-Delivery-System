@@ -30,10 +30,9 @@ const LogoutButtoun = () => {
     <div>
       <Button
         onClick={handleLogout}
-        isLoading={isLoggingOut}
         disabled={isLoggingOut}
       >
-        Logout
+        {isLoggingOut ? "Logging Out..." : "Logout"}
       </Button>
     </div>
   );
