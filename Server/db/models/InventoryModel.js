@@ -1,72 +1,17 @@
 const mongoose = require('mongoose');
 
 const inventorySchema = new mongoose.Schema({
-  baseSize: {
-    Regular: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    },
-    Medium: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    },
-    Large: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    },
-    Monster: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    }
+  name: { type: String, required: true },
+  category: {
+    type: String,
+    enum: ['cheese', 'sauce', 'base', 'topping'],
+    required: true
   },
-  baseType: {
-    type: Map,
-    of: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    }
-  },
-  sauce: {
-    type: Map,
-    of: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    }
-  },
-  cheese: {
-    type: Map,
-    of: {
-      price: { type: Number, required: true },
-      stock: { type: Number, required: true },
-      threshold: { type: Number, required: true }
-    }
-  },
-  toppings: {
-    veggie: {
-      type: Map,
-      of: {
-        price: { type: Number, required: true },
-        stock: { type: Number, required: true },
-        threshold: { type: Number, required: true }
-      }
-    },
-    nonVeg: {
-      type: Map,
-      of: {
-        price: { type: Number, required: true },
-        stock: { type: Number, required: true },
-        threshold: { type: Number, required: true }
-      }
-    }
-  },
+  price: { type: Number, required: true },
+  stock: { type: Number, required: true },
+  threshold: { type: Number, required: true },
+  status: { type: String, enum: ['available', 'out of stock'], default: 'available' },
   createdAt: { type: Date, default: Date.now }
-});
-
+}, { timestamps: true });
 
 export const Inventory = mongoose.model("Inventory", inventorySchema);
