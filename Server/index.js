@@ -22,12 +22,12 @@ app.use(cookieParser());
 app.use(cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH'],
+    methods: ['GET', 'POST', 'PATCH','DELETE'],
 }));
 
 // Middleware to get logged user info along with its role(Admin | user).
 // app.use("*",(req, res, next) => {
-//     console.log(req);
+//     console.log(req.method, req.path);
 //     next();
 // });
 

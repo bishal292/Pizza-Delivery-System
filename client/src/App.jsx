@@ -113,12 +113,10 @@ const router = createBrowserRouter([
       </PrivateRoutes>
     ),
     children: [
-      { index: true, element: <Navigate to="dashboard" replace /> },
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "profile", element: <AdminProfile /> },
       { path: "inventory", element: <AdminInventory /> },
       { path: "orders", element: <AdminOrders /> },
-      { path: "*", element: <Navigate to="dashboard" /> },
     ],
   },
   {

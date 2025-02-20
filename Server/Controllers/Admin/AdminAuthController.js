@@ -9,7 +9,7 @@ import BlockedCookies from "../../db/models/BlockedCookies.js";
 
 configDotenv();
 
-const maxAge = process.env.MAX_AGE;
+const maxAge = 3 * 24 * 60 * 60 * 1000;
 
 export const logIn = async (req, res, next) => {
   try {
@@ -22,7 +22,8 @@ export const logIn = async (req, res, next) => {
 
     //Check if user exists in database.
     const user = await Admin.findOne({ email });
-    if (!user) return res.status(401).send("No User Exists with this email");
+    // if (!user) return res.status(401).send("No Admin Exists with this email");
+    if (!user) return res.status(401).send("Invalid Credentials.");
 
     const auth = await bcrypt.compare(password, user.password);
 
