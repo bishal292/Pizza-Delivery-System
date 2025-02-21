@@ -4,7 +4,7 @@ import { Inventory } from "../../db/models/InventoryModel.js";
 
 export const dashboard = async (req, res, next) => {
     try {
-        
+        // Todo 
     } catch (error) {
         console.log(error.message);
         res.status(500).send("Internal Server Error");        

@@ -34,7 +34,7 @@ Pizza-Delivery-System/Server/
 ### User Authentication
 
 #### Sign Up
-- **URL:** `/user/auth/signup`
+- **URL:** `/api/v1/user/auth/signup`
 - **Method:** `POST`
 - **Request Body:**
   ```json
@@ -79,7 +79,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Log In
-- **URL:** `/user/auth/login`
+- **URL:** `/api/v1/user/auth/login`
 - **Method:** `POST`
 - **Request Body:**
   ```json
@@ -129,7 +129,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Log Out (Protected)
-- **URL:** `/user/auth/logout`
+- **URL:** `/api/v1/user/auth/logout`
 - **Method:** `GET`
 - **Responses:**
   - **200 OK:**
@@ -152,7 +152,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Change Password (Protected)
-- **URL:** `/user/auth/changepassword`
+- **URL:** `/api/v1/user/auth/changepassword`
 - **Method:** `PATCH`
 - **Request Body:**
   ```json
@@ -198,7 +198,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Forgot Password
-- **URL:** `/user/auth/forgotpassword`
+- **URL:** `/api/v1/user/auth/forgotpassword`
 - **Method:** `POST`
 - **Request Body:**
   ```json
@@ -247,7 +247,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Reset Password
-- **URL:** `/user/auth/resetpassword`
+- **URL:** `/api/v1/user/auth/resetpassword`
 - **Method:** `PATCH`
 - **Request Body:**
   ```json
@@ -313,7 +313,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Get User Info (Protected)
-- **URL:** `/user/auth/user-info`
+- **URL:** `/api/v1/user/auth/user-info`
 - **Method:** `GET`
 - **Responses:**
   - **200 OK:**
@@ -346,7 +346,7 @@ Pizza-Delivery-System/Server/
 ### Admin Authentication
 
 #### Sign Up
-- **URL:** `/admin/auth/signup`
+- **URL:** `/api/v1/admin/auth/signup`
 - **Method:** `POST`
 - **Request Body:**
   ```json
@@ -398,7 +398,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Log In
-- **URL:** `/admin/auth/login`
+- **URL:** `/api/v1/admin/auth/login`
 - **Method:** `POST`
 - **Request Body:**
   ```json
@@ -448,7 +448,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Log Out (Protected)
-- **URL:** `/admin/auth/logout`
+- **URL:** `/api/v1/admin/auth/logout`
 - **Method:** `GET`
 - **Responses:**
   - **200 OK:**
@@ -471,7 +471,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Change Password (Protected)
-- **URL:** `/admin/auth/changepassword`
+- **URL:** `/api/v1/admin/auth/changepassword`
 - **Method:** `PATCH`
 - **Request Body:**
   ```json
@@ -517,7 +517,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Forgot Password
-- **URL:** `/admin/auth/forgotpassword`
+- **URL:** `/api/v1/admin/auth/forgotpassword`
 - **Method:** `POST`
 - **Request Body:**
   ```json
@@ -566,11 +566,13 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Reset Password
-- **URL:** `/admin/auth/resetpassword/:token`
+- **URL:** `/api/v1/admin/auth/resetpassword`
 - **Method:** `PATCH`
 - **Request Body:**
   ```json
   {
+    "email": "string",
+    "otp": "string",
     "password": "string",
     "confirmPassword": "string"
   }
@@ -589,12 +591,27 @@ Pizza-Delivery-System/Server/
   - **400 Bad Request:**
     ```json
     {
-      "message": "Invalid or Expired Token, Please try again"
+      "message": "Invalid or Expired OTP, Please try again"
     }
     ```
     ```json
     {
-      "message": "Please provide password and confirm password"
+      "message": "Please provide email, OTP, password and confirm password"
+    }
+    ```
+    ```json
+    {
+      "message": "Entered Email is not valid, Please provide a valid email"
+    }
+    ```
+    ```json
+    {
+      "message": "User not found with this email please provide a valid email"
+    }
+    ```
+    ```json
+    {
+      "message": "Invalid OTP, Please try again"
     }
     ```
     ```json
@@ -615,7 +632,7 @@ Pizza-Delivery-System/Server/
     ```
 
 #### Get Admin Info (Protected)
-- **URL:** `/admin/auth/admin-info`
+- **URL:** `/api/v1/admin/auth/admin-info`
 - **Method:** `GET`
 - **Responses:**
   - **200 OK:**

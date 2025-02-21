@@ -37,12 +37,12 @@ const AdminHeader = () => {
             orders
           </NavLink>
           <NavLink
-            to="/admin/profile"
+            to="/admin/Pizzas"
             className={({ isActive }) =>
               isActive ? "text-yellow-500" : "``"
             }
           >
-            Profile
+            Pizzas
           </NavLink>
         </div>
         <div>

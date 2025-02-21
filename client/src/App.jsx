@@ -8,7 +8,6 @@ import {
   useParams,
 } from "react-router-dom";
 import AdminLayout from "./pages/AdminLayout";
-import AdminProfile from "./pages/AdminPages/AdminProfile";
 import AdminInventory from "./pages/AdminPages/AdminInventory";
 import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import AdminAuth from "./pages/AdminPages/AdminAuth";
@@ -20,6 +19,7 @@ import UserAuth from "./pages/UserPages/UserAuth";
 import { apiClient } from "./utils/api-client";
 import { GET_LOGGED_USER_INFO } from "./utils/constant";
 import AdminOrders from "./pages/AdminPages/AdminOrders";
+import AdminPizza from "./pages/AdminPages/AdminPizza";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
@@ -114,7 +114,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
-      { path: "profile", element: <AdminProfile /> },
+      { path: "pizzas", element: <AdminPizza /> },
       { path: "inventory", element: <AdminInventory /> },
       { path: "orders", element: <AdminOrders /> },
     ],
