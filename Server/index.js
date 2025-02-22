@@ -18,6 +18,9 @@ app.use(express.json());
 
 app.use(cookieParser());
 
+// Serve static files from the 'uploads' directory
+app.use('/pizza-image', express.static('uploads'));
+
 // Cors for cross connection between frontend and backend.
 app.use(cors({
     origin: process.env.CLIENT_URL,

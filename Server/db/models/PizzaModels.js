@@ -3,8 +3,10 @@ import { Inventory } from "./InventoryModel.js";
 
 const pizzaSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  image: { type: String, required: true },
+  description: { type: String, required: true },
   size: { type: String, enum: ['Regular', 'Medium', 'Large'], required: true },
-  base: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory', required: true }],
+  base: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory', required: true },
   sauce: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory'}],
   cheese: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }],
   toppings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }],
@@ -21,7 +23,7 @@ pizzaSchema.pre('save', async function(next) {
     return next();
   }
 
-  const inventoryItems = [...pizza.base, ...pizza.sauce, ...pizza.cheese, ...pizza.toppings];
+  const inventoryItems = [ pizza?.base, ...pizza?.sauce, ...pizza?.cheese, ...pizza?.toppings];
   
   try {
     const items = await Inventory.find({ _id: { $in: inventoryItems } });

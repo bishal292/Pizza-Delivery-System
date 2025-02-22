@@ -1,7 +1,7 @@
 import { Router } from "express";
 import adminAuthRouter from "./adminAuthRouteHandler.js";
 import { verifyToken } from "../../Middlewares/AuthMiddleware.js";
-import { addProduct, CompletedOrders, dashboard, deleteProduct, inventory, liveOrders, updateOrderStatus, updateProduct } from "../../Controllers/Admin/AdminMiscController.js";
+import { addPizza, addProduct, CompletedOrders, dashboard, deletePizza, deleteProduct, getPizzas, imageUpload, inventory, liveOrders, updateOrderStatus, updatePizza, updateProduct, upload } from "../../Controllers/Admin/AdminMiscController.js";
 
 const AdminRouter = Router();
 
@@ -11,11 +11,19 @@ AdminRouter.use('/auth', adminAuthRouter);
 
 AdminRouter.get('/dashboard',verifyToken,dashboard);
 
+// Admin - Inventory Routes
 AdminRouter.get('/inventory',verifyToken,inventory);
-
 AdminRouter.post('/addproduct',verifyToken,addProduct);
 AdminRouter.patch('/updateproduct',verifyToken, updateProduct);
 AdminRouter.delete('/deleteproduct',verifyToken, deleteProduct);
+
+// Admin - pizza Routes
+AdminRouter.post('/pizza/upload', verifyToken, upload.single('image'),imageUpload);
+AdminRouter.get('/get-pizzas',verifyToken,getPizzas);
+AdminRouter.post('/addpizza',verifyToken, addPizza);
+AdminRouter.patch('/updatepizza',verifyToken, updatePizza);
+AdminRouter.delete('/deletepizza',verifyToken, deletePizza);
+
 
 AdminRouter.get('/orders',verifyToken, liveOrders);
 AdminRouter.patch('/updateorder/:orderId',verifyToken, updateOrderStatus);

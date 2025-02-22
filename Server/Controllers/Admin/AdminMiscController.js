@@ -1,6 +1,10 @@
 import { isValidObjectId } from "mongoose";
 import { Admin } from "../../db/models/AdminModel.js";
 import { Inventory } from "../../db/models/InventoryModel.js";
+import { Pizza } from "../../db/models/PizzaModels.js";
+import multer from "multer";
+import fs from 'fs';
+
 
 export const dashboard = async (req, res, next) => {
     try {
@@ -138,10 +142,235 @@ export const deleteProduct = async (req, res, next) => {
     }
 
 }
+export const getPizzas = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const admin = await Admin.findById(userId);
+        if (!admin) return res.status(404).send("No Such Admin Found");
+
+        const pizzas = await Pizza.find().sort({ updatedAt: -1 });
+        if (!pizzas) {
+            return res.status(404).send("No Pizzas found");
+        }
+        res.status(200).send(pizzas);
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+const storage = multer.diskStorage({
+    destination: function (_, __, cb) {
+        const uploadDir = 'uploads/';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (_, file, cb) {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+
+export const upload = multer({ storage: storage });
+export const imageUpload = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const admin = await Admin.findById(userId);
+        if (!admin) return res.status(404).send("Your Admin Account is not found");
+        if (!req.file) {
+            return res.status(400).send("No file uploaded");
+        }
+        res.status(200).json({ message: "Image uploaded successfully", imageUrl: req.file.filename });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+};
+export const addPizza = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const admin = await Admin.findById(userId);
+        if (!admin) return res.status(404).send("Your Admin Account is not found");
+        const { name, image, description, size, base, sauce, cheese, toppings, price } = req.body;
+        
+        if (!name || !image || !description || !size || !base || !price) {
+            return res.status(400).send("Please fill all required fields : name, image, description, size, base, price");
+        }
+        if (!['Regular', 'Medium', 'Large', 'Monster'].includes(size)) {
+            return res.status(400).send("Invalid Size");
+        }
+        if (isNaN(price)) {
+            return res.status(400).send("Price must be a number");
+        }
+
+        const validateInventoryItems = async (items, category) => {
+            if (!Array.isArray(items)) return false;
+            for (const item of items) {
+                if (!isValidObjectId(item)) return false;
+                const inventoryItem = await Inventory.findOne({ _id: item, category });
+                if (!inventoryItem) return false;
+            }
+            return true;
+        };
+
+        if (!(await validateInventoryItems([base], 'base'))) {
+            return res.status(400).send("Invalid Base");
+        }
+        if (sauce && !(await validateInventoryItems(sauce, 'sauce'))) {
+            return res.status(400).send("Invalid Sauce");
+        }
+        if (cheese && !(await validateInventoryItems(cheese, 'cheese'))) {
+            return res.status(400).send("Invalid Cheese");
+        }
+        if (toppings && !(await validateInventoryItems(toppings, 'topping'))) {
+            return res.status(400).send("Invalid Toppings");
+        }
+
+        // Check if pizza with same name and identical base already exists
+        const existingPizza = await Pizza.findOne({ name, size, base});
+
+        if (existingPizza) {
+            return res.status(400).send("Pizza with the same name and base already exists try updating it");
+        }
+
+        const newPizza = new Pizza({
+            name,
+            image,
+            description,
+            size,
+            base,
+            sauce,
+            cheese,
+            toppings,
+            price
+        });
+        const savedPizza = await newPizza.save();
+        if (!savedPizza) {
+            return res.status(500).send("Error saving pizza");
+        }
+        res.status(201).json({message:"Pizza added successfully", pizza:savedPizza});
+    }catch(error){
+        console.log(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+export const updatePizza = async (req, res, next) => {
+    try{
+        const userId = req.userId;
+        const admin = await Admin.findById(userId);
+        if (!admin) return res.status(404).send("Your Admin Account is not found");
+        const { id } = req.query;
+        if (!id || !isValidObjectId(id)) {
+            return res.status(400).send("Invalid Pizza ID");
+        }
+
+        const pizza = await Pizza.findById(id);
+        if (!pizza) {
+            return res.status(404).send("Pizza not found");
+        }
+        const { name, size, base, sauce, cheese, toppings, price, image, description } = req.body;
+        if((name && pizza.name != name) || (base && pizza.base != base)){
+            return res.status(400).send("Name And Base cannot be updated");
+        }
+        if (!size && !price && !image && !description && !sauce && !cheese && !toppings) {
+            return res.status(400).send("Some fields are required to update among size, price, image, description, sauce, cheese, toppings.");
+        }
+
+        if (size && !['Regular', 'Medium', 'Large', 'Monster'].includes(size)) {
+            return res.status(400).send("Invalid Size");
+        }
+
+        if (price && isNaN(price)) {
+            return res.status(400).send("Price must be a number");
+        }
+        const isValidUrl = (url) => {
+            try {
+            new URL(url);
+            return true;
+            } catch (e) {
+            return false;
+            }
+        };
+
+        if (image && !isValidUrl(image)) {
+            return res.status(400).send("Invalid Image URL");
+        }
+
+        const validateInventoryItems = async (items, category) => {
+            if (!Array.isArray(items)) return false;
+            for (const item of items) {
+                if (!isValidObjectId(item)) return false;
+                const inventoryItem = await Inventory.findOne({ _id: item, category });
+                if (!inventoryItem) return false;
+            }
+            return true;
+        };
+
+        if (base && !(await validateInventoryItems([base], 'base'))) {
+            return res.status(400).send("Invalid Base");
+        }
+        if (sauce && !(await validateInventoryItems(sauce, 'sauce'))) {
+            return res.status(400).send("Invalid Sauce");
+        }
+        if (cheese && !(await validateInventoryItems(cheese, 'cheese'))) {
+            return res.status(400).send("Invalid Cheese");
+        }
+        if (toppings && !(await validateInventoryItems(toppings, 'topping'))) {
+            return res.status(400).send("Invalid Toppings");
+        }
+
+        const updatedFields = {};
+        if (size) updatedFields.size = size;
+        if (price) updatedFields.price = price;
+        if (image) updatedFields.image = image;
+        if (description) updatedFields.description = description;
+        if (sauce) updatedFields.sauce = sauce;
+        if (cheese) updatedFields.cheese = cheese;
+        if (toppings) updatedFields.toppings = toppings;
+
+        const updatedPizza = await Pizza.findByIdAndUpdate(id, updatedFields, { new: true });
+        if (!updatedPizza) {
+            return res.status(500).send("Error updating pizza");
+        }
+        res.status(200).json({ message: "Pizza updated successfully", pizza: updatedPizza });
+
+    }catch(error){
+        console.log(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+export const deletePizza = async (req, res, next) => {
+    try{
+        const userId = req.userId;
+        const admin = await Admin.findById(userId);
+        if (!admin) return res.status(404).send("Your Admin Account is not found");
+        const { id } = req.query;
+        if (!id || !isValidObjectId(id)) {
+            return res.status(400).send("Invalid Pizza ID");
+        }
+
+        const pizza = await Pizza.findById(id);
+        if (!pizza) {
+            return res.status(404).send("Pizza not found");
+        }
+        const deletedPizza = await Pizza.findByIdAndDelete(id);
+        if (!deletedPizza) {
+            return res.status(500).send("Error deleting pizza");
+        }
+        res.status(200).json({ message: "Pizza deleted successfully", pizza: deletedPizza });
+    }catch(error){
+        console.log(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+};
 
 export const liveOrders = async (req, res, next) => {
 
 };
+
 export const updateOrderStatus = async (req, res, next) => {
 
 };
