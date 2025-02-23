@@ -270,12 +270,11 @@ export const updatePizza = async (req, res, next) => {
         if (!pizza) {
             return res.status(404).send("Pizza not found");
         }
+
         const { name, size, base, sauce, cheese, toppings, price, image, description } = req.body;
-        if((name && pizza.name != name) || (base && pizza.base != base)){
-            return res.status(400).send("Name And Base cannot be updated");
-        }
-        if (!size && !price && !image && !description && !sauce && !cheese && !toppings) {
-            return res.status(400).send("Some fields are required to update among size, price, image, description, sauce, cheese, toppings.");
+
+        if (!name && !base && !size && !price && !image && !description && !sauce && !cheese && !toppings) {
+            return res.status(400).send("Some changes in any fields are required to perform updation");
         }
 
         if (size && !['Regular', 'Medium', 'Large', 'Monster'].includes(size)) {
@@ -285,19 +284,7 @@ export const updatePizza = async (req, res, next) => {
         if (price && isNaN(price)) {
             return res.status(400).send("Price must be a number");
         }
-        const isValidUrl = (url) => {
-            try {
-            new URL(url);
-            return true;
-            } catch (e) {
-            return false;
-            }
-        };
-
-        if (image && !isValidUrl(image)) {
-            return res.status(400).send("Invalid Image URL");
-        }
-
+        
         const validateInventoryItems = async (items, category) => {
             if (!Array.isArray(items)) return false;
             for (const item of items) {
@@ -322,6 +309,8 @@ export const updatePizza = async (req, res, next) => {
         }
 
         const updatedFields = {};
+        if (name) updatedFields.name = name;
+        if (base) updatedFields.base = base;
         if (size) updatedFields.size = size;
         if (price) updatedFields.price = price;
         if (image) updatedFields.image = image;

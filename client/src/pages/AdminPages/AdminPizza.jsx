@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { apiClient } from "@/utils/api-client";
 import { FaTrash } from "react-icons/fa";
-import { MdCancel } from "react-icons/md";
 import { toast } from "sonner";
 import {
   ADMIN_ADD_PIZZA,
@@ -11,6 +10,7 @@ import {
   ADMIN_UPLOAD_PIZZA_IMAGE,
   HOST,
 } from "@/utils/constant";
+import UpdatePizza from "./UpdatePizza";
 
 const AdminPizza = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -18,6 +18,7 @@ const AdminPizza = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdateScreenOpen, setIsUpdateScreenOpen] = useState(false);
   const [newPizza, setNewPizza] = useState({
     name: "",
     image: null,
@@ -40,12 +41,10 @@ const AdminPizza = () => {
         const response = await apiClient.get(ADMIN_GET_PIZZAS, {
           withCredentials: true,
         });
-        console.log(response);
         if (response.status === 200) {
           setPizzas(response.data);
         }
       } catch (error) {
-        console.log(error);
         toast.error("Error fetching pizzas");
       } finally {
         setIsLoaded(true);
@@ -61,7 +60,6 @@ const AdminPizza = () => {
           setInventory(response.data);
         }
       } catch (error) {
-        console.log(error);
         toast.error("Error fetching inventory");
       }
     };
@@ -91,11 +89,6 @@ const AdminPizza = () => {
     }
   };
 
-  const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditablePizza({ ...editablePizza, [name]: value });
-  };
-
   const addPizza = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -123,11 +116,9 @@ const AdminPizza = () => {
         setIsSubmitting(false);
         return;
       }
-      console.log(newPizza);
       const response = await apiClient.post(ADMIN_ADD_PIZZA, newPizza, {
         withCredentials: true,
       });
-      console.log(response);
       if (response.status === 201) {
         toast.success("Pizza Added Successfully");
         setPizzas([response.data.pizza, ...pizzas]);
@@ -144,7 +135,6 @@ const AdminPizza = () => {
         });
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.response.data?.message || error.response.data);
     } finally {
       setIsPopupOpen(false);
@@ -163,36 +153,15 @@ const AdminPizza = () => {
         setPizzas(pizzas.filter((pizza) => pizza._id !== id));
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.response.data?.message || error.response.data);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const updatePizza = async (id) => {
-    setIsSubmitting(true);
-    try {
-      const response = await apiClient.patch(
-        `/admin/pizzas/${id}`,
-        editablePizza,
-        {
-          withCredentials: true,
-        }
-      );
-      if (response.status === 200) {
-        toast.success("Pizza Updated Successfully");
-        setPizzas(
-          pizzas.map((pizza) => (pizza._id === id ? editablePizza : pizza))
-        );
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Error updating pizza");
-    } finally {
-      setIsSubmitting(false);
-      setEditablePizzaId(null);
-    }
+  const handleUpdate = (updatedPizza) => {
+    setPizzas(pizzas.map((pizza) => (pizza._id === updatedPizza._id ? updatedPizza : pizza)));
+    setIsUpdateScreenOpen(false);
   };
 
   if (!isLoaded) {
@@ -211,104 +180,46 @@ const AdminPizza = () => {
           Add New Pizza
         </button>
       </div>
+      {isUpdateScreenOpen && (
+        <UpdatePizza
+          pizza={editablePizza}
+          inventory={inventory}
+          onClose={() => setIsUpdateScreenOpen(false)}
+          onUpdate={handleUpdate}
+        />
+      )}
       <div className="grid grid-cols-3 gap-4">
         {pizzas.map((pizza) => (
           <div key={pizza._id} className="border p-4 rounded">
-            {editablePizzaId === pizza._id ? (
-              <>
-                <input
-                  className="w-full p-2 mb-2 border border-gray-300 rounded"
-                  type="text"
-                  name="name"
-                  value={editablePizza.name}
-                  onChange={handleEditInputChange}
-                  placeholder="Name"
-                />
-                <input
-                  className="w-full p-2 mb-2 border border-gray-300 rounded"
-                  type="text"
-                  name="image"
-                  value={editablePizza.image}
-                  onChange={handleEditInputChange}
-                  placeholder="Image URL"
-                />
-                <textarea
-                  className="w-full p-2 mb-2 border border-gray-300 rounded"
-                  name="description"
-                  value={editablePizza.description}
-                  onChange={handleEditInputChange}
-                  placeholder="Description"
-                />
-                <select
-                  className="w-full p-2 mb-2 border border-gray-300 rounded"
-                  name="size"
-                  value={editablePizza.size}
-                  onChange={handleEditInputChange}
-                >
-                  <option value="" disabled>
-                    Select one of the item
-                  </option>
-                  <option value="Regular">Regular</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Large">Large</option>
-                </select>
-                <input
-                  className="w-full p-2 mb-2 border border-gray-300 rounded"
-                  type="number"
-                  name="price"
-                  value={editablePizza.price}
-                  onChange={handleEditInputChange}
-                  placeholder="Price"
-                />
-                <div className="flex justify-end space-x-2">
-                  <button
-                    disabled={isSubmitting}
-                    className="bg-green-500 text-white px-4 py-2 rounded"
-                    onClick={() => updatePizza(pizza._id)}
-                  >
-                    Save
-                  </button>
-                  <button
-                    disabled={isSubmitting}
-                    className="bg-gray-500 text-white px-4 py-2 rounded"
-                    onClick={() => setEditablePizzaId(null)}
-                  >
-                    <MdCancel />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="text-xl font-bold">{pizza.name}</h2>
-                <img
-                  src={`${HOST}/pizza-image/${pizza.image}`}
-                  alt={pizza.name}
-                  className="w-full h-32 object-cover mb-2"
-                />
-                <p>{pizza.description}</p>
-                <p>Size: {pizza.size}</p>
-                <p>Price: ${pizza.price}</p>
-                <div className="flex justify-end space-x-2 mt-2">
-                  <button
-                    disabled={isSubmitting}
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      setEditablePizzaId(pizza._id);
-                      setEditablePizza(pizza);
-                    }}
-                  >
-                    Update
-                  </button>
-                  <button
-                    disabled={isSubmitting}
-                    className="bg-red-500 text-white px-4 py-2 rounded"
-                    onClick={() => deletePizza(pizza._id)}
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </>
-            )}
+            <h2 className="text-xl font-bold">{pizza.name}</h2>
+            <img
+              src={`${HOST}/pizza-image/${pizza.image}`}
+              alt={pizza.name}
+              className="w-full h-32 object-cover mb-2"
+            />
+            <p>{pizza.description}</p>
+            <p>Size: {pizza.size}</p>
+            <p>Price: ${pizza.price}</p>
+            <div className="flex justify-end space-x-2 mt-2">
+              <button
+                disabled={isSubmitting}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={() => {
+                  setEditablePizzaId(pizza._id);
+                  setEditablePizza(pizza);
+                  setIsUpdateScreenOpen(true);
+                }}
+              >
+                Update
+              </button>
+              <button
+                disabled={isSubmitting}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+                onClick={() => deletePizza(pizza._id)}
+              >
+                <FaTrash />
+              </button>
+            </div>
           </div>
         ))}
       </div>
