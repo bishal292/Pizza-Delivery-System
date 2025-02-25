@@ -11,6 +11,7 @@ import {
   HOST,
 } from "@/utils/constant";
 import UpdatePizza from "./UpdatePizza";
+import { Link } from "react-router-dom";
 
 const AdminPizza = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -19,6 +20,8 @@ const AdminPizza = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdateScreenOpen, setIsUpdateScreenOpen] = useState(false);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const [pizzaToDelete, setPizzaToDelete] = useState(null);
   const [newPizza, setNewPizza] = useState({
     name: "",
     image: null,
@@ -142,19 +145,20 @@ const AdminPizza = () => {
     }
   };
 
-  const deletePizza = async (id) => {
+  const deletePizza = async () => {
     setIsSubmitting(true);
     try {
-      const response = await apiClient.delete(`${ADMIN_DELETE_PIZZA}?id=${id}`, {
+      const response = await apiClient.delete(`${ADMIN_DELETE_PIZZA}?id=${pizzaToDelete}`, {
         withCredentials: true,
       });
       if (response.status === 200) {
         toast.success("Pizza Deleted Successfully");
-        setPizzas(pizzas.filter((pizza) => pizza._id !== id));
+        setPizzas(pizzas.filter((pizza) => pizza._id !== pizzaToDelete));
       }
     } catch (error) {
       toast.error(error.response.data?.message || error.response.data);
     } finally {
+      setIsDeletePopupOpen(false);
       setIsSubmitting(false);
     }
   };
@@ -162,6 +166,8 @@ const AdminPizza = () => {
   const handleUpdate = (updatedPizza) => {
     setPizzas(pizzas.map((pizza) => (pizza._id === updatedPizza._id ? updatedPizza : pizza)));
     setIsUpdateScreenOpen(false);
+    setEditablePizzaId(null);
+    setEditablePizza({});
   };
 
   if (!isLoaded) {
@@ -184,22 +190,28 @@ const AdminPizza = () => {
         <UpdatePizza
           pizza={editablePizza}
           inventory={inventory}
-          onClose={() => setIsUpdateScreenOpen(false)}
+          onClose={() => {
+            setIsUpdateScreenOpen(false);
+            setEditablePizzaId(null);
+            setEditablePizza({});
+          }}
           onUpdate={handleUpdate}
         />
       )}
       <div className="grid grid-cols-3 gap-4">
         {pizzas.map((pizza) => (
           <div key={pizza._id} className="border p-4 rounded">
-            <h2 className="text-xl font-bold">{pizza.name}</h2>
-            <img
-              src={`${HOST}/pizza-image/${pizza.image}`}
-              alt={pizza.name}
-              className="w-full h-32 object-cover mb-2"
-            />
-            <p>{pizza.description}</p>
-            <p>Size: {pizza.size}</p>
-            <p>Price: ${pizza.price}</p>
+            <Link to={`/admin/pizza/${pizza._id}`} className="block">
+              <h2 className="text-xl font-bold">{pizza.name}</h2>
+              <img
+                src={`${HOST}/pizza-image/${pizza.image}`}
+                alt={pizza.name}
+                className="w-full h-32 object-cover mb-2"
+              />
+              <p>{pizza.description}</p>
+              <p>Size: {pizza.size}</p>
+              <p>Price: ${pizza.price}</p>
+            </Link>
             <div className="flex justify-end space-x-2 mt-2">
               <button
                 disabled={isSubmitting}
@@ -215,7 +227,10 @@ const AdminPizza = () => {
               <button
                 disabled={isSubmitting}
                 className="bg-red-500 text-white px-4 py-2 rounded"
-                onClick={() => deletePizza(pizza._id)}
+                onClick={() => {
+                  setPizzaToDelete(pizza._id);
+                  setIsDeletePopupOpen(true);
+                }}
               >
                 <FaTrash />
               </button>
@@ -277,6 +292,7 @@ const AdminPizza = () => {
                   <option value="Regular">Regular</option>
                   <option value="Medium">Medium</option>
                   <option value="Large">Large</option>
+                  <option value="Large">Monster</option>
                 </select>
               </div>
               <div>
@@ -387,6 +403,28 @@ const AdminPizza = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {isDeletePopupOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-1/3">
+            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this pizza?</p>
+            <div className="flex justify-end space-x-4 mt-4">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={() => setIsDeletePopupOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded"
+                onClick={deletePizza}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

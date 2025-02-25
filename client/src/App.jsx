@@ -20,6 +20,7 @@ import { apiClient } from "./utils/api-client";
 import { GET_LOGGED_USER_INFO } from "./utils/constant";
 import AdminOrders from "./pages/AdminPages/AdminOrders";
 import AdminPizza from "./pages/AdminPages/AdminPizza";
+import PizzaDetails from "./pages/AdminPages/PizzaDetails";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
@@ -117,6 +118,7 @@ const router = createBrowserRouter([
       { path: "pizzas", element: <AdminPizza /> },
       { path: "inventory", element: <AdminInventory /> },
       { path: "orders", element: <AdminOrders /> },
+      { path: "pizza/:id", element: <PizzaDetails /> },
     ],
   },
   {

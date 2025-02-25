@@ -1,28 +1,41 @@
 import React, { useState } from "react";
 import { apiClient } from "@/utils/api-client";
 import { toast } from "sonner";
-import { ADMIN_UPDATE_PIZZA } from "@/utils/constant";
+import { ADMIN_UPDATE_PIZZA, ADMIN_UPLOAD_PIZZA_IMAGE } from "@/utils/constant";
+import { Pizza } from "lucide-react";
 
 const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
-  const [editablePizza, setEditablePizza] = useState(pizza);
+  const [updatedPizza, setUpdatedPizza] = useState({
+    name: pizza?.name || "",
+    image: Pizza?.image || null,
+    description: pizza?.description || "",
+    size: pizza?.size || "",
+    base: pizza?.base || "",
+    sauce: pizza?.sauce || [],
+    cheese: pizza?.cheese || [],
+    toppings: pizza?.toppings || [],
+    price: pizza?.price || "",
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleEditInputChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditablePizza({ ...editablePizza, [name]: value });
+    setUpdatedPizza({ ...updatedPizza, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    setUpdatedPizza({ ...updatedPizza, image: e.target.files[0] });
   };
 
   const handleCheckboxChange = (e) => {
     const { name, value, checked } = e.target;
     if (checked) {
-      setEditablePizza({
-        ...editablePizza,
-        [name]: [...editablePizza[name], value],
-      });
+      setUpdatedPizza({ ...updatedPizza, [name]: [...updatedPizza[name], value] });
     } else {
-      setEditablePizza({
-        ...editablePizza,
-        [name]: editablePizza[name].filter((item) => item !== value),
+      setUpdatedPizza({
+        ...updatedPizza,
+        [name]: updatedPizza[name].filter((item) => item !== value),
       });
     }
   };
@@ -31,23 +44,36 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await apiClient.patch(
-        `${ADMIN_UPDATE_PIZZA}?id=${editablePizza._id}`,
-        editablePizza,
-        {
-          withCredentials: true,
-        }
-      );
-      if (response && response.status === 200) {
+      if (updatedPizza.image) {
+        updatedPizza.image = await new Promise((resolve, reject) => {
+          const formData = new FormData();
+          formData.append("image", updatedPizza.image);
+
+          apiClient
+            .post(ADMIN_UPLOAD_PIZZA_IMAGE, formData, { withCredentials: true })
+            .then((response) => {
+              if (response.status === 200) {
+                resolve(response.data.imageUrl);
+              } else {
+                reject(new Error("Failed to upload image"));
+              }
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+      }
+      const response = await apiClient.patch(`${ADMIN_UPDATE_PIZZA}?id=${pizza._id}`, updatedPizza, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
         toast.success("Pizza Updated Successfully");
-        onUpdate(editablePizza);
+        onUpdate(response.data.pizza);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Error updating pizza");
+      toast.error(error.response.data?.message || error.response.data);
     } finally {
       setIsSubmitting(false);
-      onClose();
     }
   };
 
@@ -62,8 +88,8 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
               className="w-full p-2 border border-gray-300 rounded"
               type="text"
               name="name"
-              value={editablePizza.name}
-              onChange={handleEditInputChange}
+              value={updatedPizza.name}
+              onChange={handleInputChange}
               placeholder="Name"
               required
             />
@@ -72,12 +98,10 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
             <label className="block text-gray-700">Image</label>
             <input
               className="w-full p-2 border border-gray-300 rounded"
-              type="text"
+              type="file"
+              accept="Image/*"
               name="image"
-              value={editablePizza.image}
-              onChange={handleEditInputChange}
-              placeholder="Image URL"
-              required
+              onChange={handleFileChange}
             />
           </div>
           <div>
@@ -85,8 +109,8 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
             <textarea
               className="w-full p-2 border border-gray-300 rounded"
               name="description"
-              value={editablePizza.description}
-              onChange={handleEditInputChange}
+              value={updatedPizza.description}
+              onChange={handleInputChange}
               placeholder="Description"
               required
             />
@@ -96,8 +120,8 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
             <select
               className="w-full p-2 border border-gray-300 rounded"
               name="size"
-              value={editablePizza.size}
-              onChange={handleEditInputChange}
+              value={updatedPizza.size}
+              onChange={handleInputChange}
               required
             >
               <option value="" disabled>
@@ -106,6 +130,7 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
               <option value="Regular">Regular</option>
               <option value="Medium">Medium</option>
               <option value="Large">Large</option>
+              <option value="Monster">Monster</option>
             </select>
           </div>
           <div>
@@ -113,8 +138,8 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
             <select
               className="w-full p-2 border border-gray-300 rounded"
               name="base"
-              value={editablePizza.base}
-              onChange={handleEditInputChange}
+              value={updatedPizza.base}
+              onChange={handleInputChange}
               required
             >
               <option value="" disabled>
@@ -140,7 +165,7 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
                       type="checkbox"
                       name="sauce"
                       value={item._id}
-                      checked={editablePizza.sauce.includes(item._id)}
+                      checked={updatedPizza.sauce.includes(item._id)}
                       onChange={handleCheckboxChange}
                     />
                     {item.name}
@@ -159,7 +184,7 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
                       type="checkbox"
                       name="cheese"
                       value={item._id}
-                      checked={editablePizza.cheese.includes(item._id)}
+                      checked={updatedPizza.cheese.includes(item._id)}
                       onChange={handleCheckboxChange}
                     />
                     {item.name}
@@ -178,7 +203,7 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
                       type="checkbox"
                       name="toppings"
                       value={item._id}
-                      checked={editablePizza.toppings.includes(item._id)}
+                      checked={updatedPizza.toppings.includes(item._id)}
                       onChange={handleCheckboxChange}
                     />
                     {item.name}
@@ -192,8 +217,8 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
               className="w-full p-2 border border-gray-300 rounded"
               type="number"
               name="price"
-              value={editablePizza.price}
-              onChange={handleEditInputChange}
+              value={updatedPizza.price}
+              onChange={handleInputChange}
               placeholder="Price"
               required
             />

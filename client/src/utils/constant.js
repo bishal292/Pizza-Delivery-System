@@ -34,6 +34,7 @@ export const ADMIN_UPLOAD_PIZZA_IMAGE = `${baseRoute}/admin/pizza/upload`
 export const ADMIN_ADD_PIZZA = `${baseRoute}/admin/addpizza`
 export const ADMIN_UPDATE_PIZZA = `${baseRoute}/admin/updatepizza`  // PATCH -> PIZZA ID
 export const ADMIN_DELETE_PIZZA = `${baseRoute}/admin/deletepizza`  // DELETE -> PIZZA ID
+export const ADMIN_GET_PIZZA_DETAILS = `${baseRoute}/admin/pizza/get-pizza-details`  // GET -> PIZZA ID
 
 
 const UserAuth = `${baseRoute}/user/auth`

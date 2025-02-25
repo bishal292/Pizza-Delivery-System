@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import zxcvbn from "zxcvbn";
 dotenv.config();
 import nodemailer from "nodemailer";
+import multer from "multer";
+import fs from "fs";
 
 // maxAge for token expiration time in seconds(3 days).
 const maxAge = 3 * 24 * 60 * 60;
@@ -62,3 +64,24 @@ export function sendEmail(option) {
 
     transporter.sendMail(emailOptions);
 }
+
+/**
+ * Function to setup storage directory for image in the server.
+ */
+const storage = multer.diskStorage({
+    destination: function (_, __, cb) {
+        const uploadDir = 'uploads/';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (_, file, cb) {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+
+/**
+ * Function to upload image to a defined storage directory in the server.
+ */
+export const upload = multer({ storage: storage });

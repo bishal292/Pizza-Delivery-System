@@ -7,10 +7,10 @@ const AdminHeader = () => {
   return (
     <>
       <div className="flex items-center justify-between bg-gray-800 text-white p-2">
-        <div className="flex items-center gap-2">
+        <NavLink to="/admin/dashboard" className="flex items-center gap-2">
           <img src={logo} className="h-8 w-8" alt="Pizeria" />
           Pizzeria
-        </div>
+        </NavLink>
         <div className="flex gap-4">
           <NavLink
             to="/admin/dashboard"

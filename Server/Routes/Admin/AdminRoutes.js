@@ -1,7 +1,8 @@
 import { Router } from "express";
 import adminAuthRouter from "./adminAuthRouteHandler.js";
 import { verifyToken } from "../../Middlewares/AuthMiddleware.js";
-import { addPizza, addProduct, CompletedOrders, dashboard, deletePizza, deleteProduct, getPizzas, imageUpload, inventory, liveOrders, updateOrderStatus, updatePizza, updateProduct, upload } from "../../Controllers/Admin/AdminMiscController.js";
+import { addPizza, addProduct, CompletedOrders, dashboard, deletePizza, deleteProduct, getPizzaDetails, getPizzas, imageUpload, inventory, liveOrders, updateOrderStatus, updatePizza, updateProduct } from "../../Controllers/Admin/AdminMiscController.js";
+import { upload } from "../../utils/util-functions.js";
 
 const AdminRouter = Router();
 
@@ -20,6 +21,7 @@ AdminRouter.delete('/deleteproduct',verifyToken, deleteProduct);
 // Admin - pizza Routes
 AdminRouter.post('/pizza/upload', verifyToken, upload.single('image'),imageUpload);
 AdminRouter.get('/get-pizzas',verifyToken,getPizzas);
+AdminRouter.get('/pizza/get-pizza-details',verifyToken,getPizzaDetails);
 AdminRouter.post('/addpizza',verifyToken, addPizza);
 AdminRouter.patch('/updatepizza',verifyToken, updatePizza);
 AdminRouter.delete('/deletepizza',verifyToken, deletePizza);
