@@ -13,7 +13,6 @@ import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import AdminAuth from "./pages/AdminPages/AdminAuth";
 import UserLayout from "./pages/UserLayout";
 import UserHome from "./pages/UserPages/UserHome";
-import UserProfile from "./pages/UserPages/UserProfile";
 import UserCart from "./pages/UserPages/UserCart";
 import UserAuth from "./pages/UserPages/UserAuth";
 import { apiClient } from "./utils/api-client";
@@ -21,6 +20,7 @@ import { GET_LOGGED_USER_INFO } from "./utils/constant";
 import AdminOrders from "./pages/AdminPages/AdminOrders";
 import AdminPizza from "./pages/AdminPages/AdminPizza";
 import PizzaDetails from "./pages/AdminPages/PizzaDetails";
+import UserOrders from "./pages/UserPages/UserOrders";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
@@ -101,7 +101,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="home" replace /> },
       { path: "home", element: <UserHome /> },
-      { path: "profile", element: <UserProfile /> },
+      { path: "orders", element: <UserOrders /> },
       { path: "cart", element: <UserCart /> },
       // { path: "*", element: <Navigate to="home" /> },
     ],

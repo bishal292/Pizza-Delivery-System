@@ -1,6 +1,6 @@
 import React from 'react'
 
-const UserProfile = () => {
+const UserOrders = () => {
   return (
     <div>
       User Profile
@@ -8,4 +8,4 @@ const UserProfile = () => {
   )
 }
 
-export default UserProfile
+export default UserOrders

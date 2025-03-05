@@ -5,14 +5,15 @@ const orderSchema = new mongoose.Schema({
   items: [{
     pizzaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Pizza', required: true },
     customizations: {
-      extraCheese: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' },
-      extraToppings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }]
+      base: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' },
+      sauce: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }],
+      cheese: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }],
+      toppings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }]
     },
     quantity: { type: Number, required: true, default: 1 }
   }],
   totalPrice: { type: Number, required: true },
-  status: { type: String, enum: ['preparing', 'out for delivery', 'delivered'], default: 'preparing' },
-  createdAt: { type: Date, default: Date.now }
+  status: { type: String, enum: ['Placed','preparing', 'out for delivery', 'delivered'], default: 'Placed' },
 }, { timestamps: true });
 
 export const Order = mongoose.model("Order", orderSchema);

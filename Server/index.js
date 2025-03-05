@@ -29,10 +29,10 @@ app.use(cors({
 }));
 
 // Middleware to get logged user info along with its role(Admin | user).
-// app.use("*",(req, res, next) => {
-//     console.log(req.method, req.path);
-//     next();
-// });
+app.use("*",(req, res, next) => {
+    console.log(req.method, req.path);
+    next();
+});
 
 app.get("/api/v1/auth/get-user-info",verifyToken,getUserInfo);
 

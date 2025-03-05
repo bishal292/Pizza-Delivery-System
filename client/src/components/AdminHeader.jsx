@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import LogoutButtoun from "./LogoutButtoun";
 import logo from "../assets/Logo.svg";
+import LogoutButton from "./LogoutButton";
 
 const AdminHeader = () => {
   return (
@@ -46,7 +46,7 @@ const AdminHeader = () => {
           </NavLink>
         </div>
         <div>
-          <LogoutButtoun />
+          <LogoutButton />
         </div>
       </div>
     </>

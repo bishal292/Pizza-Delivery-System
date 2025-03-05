@@ -5,7 +5,7 @@ import { ADMIN_AUTH_LOGOUT, USER_AUTH_LOGOUT } from "@/utils/constant";
 import { useAppStore } from "@/Store/store";
 import { toast } from "sonner";
 
-const LogoutButtoun = () => {
+const LogoutButton = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { userInfo, setUserInfo } = useAppStore();
 
@@ -38,4 +38,4 @@ const LogoutButtoun = () => {
   );
 };
 
-export default LogoutButtoun;
+export default LogoutButton;
