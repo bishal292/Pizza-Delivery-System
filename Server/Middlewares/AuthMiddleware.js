@@ -7,16 +7,15 @@ dotenv.config();
 
 export const verifyToken = async (req, res, next) => {
     const token = req.cookies.jwt;
-    console.log(token);
+
     if(!token) return res.status(401).send("You are not Authenticated.");
     const cookiee = await BlockedCookies.findOne({cookie: token});
-    console.log(cookiee);
     if(cookiee) return res.status(401).send("Your session expired, Please Login Again.");
     jwt.verify(token, process.env.JWT_KEY, async (err, user) => {
 
         if(err) return res.status(403).send("token not valid!");
         req.userId = user.userId;
-        console.log(user.userId)
+        console.log("USERID : ",user.userId)
         next();
     });
 }

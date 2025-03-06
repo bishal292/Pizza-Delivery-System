@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { useAppStore } from "./Store/store";
 import { Toaster } from "sonner";
+import { SocketProvider } from "./Context/SocketContext";
 
 if (import.meta.env.NODE_ENV !== "production") {
   const originalWarn = console.warn;
@@ -29,9 +30,12 @@ const AppTheme = () => {
 createRoot(document.getElementById("root")).render(
   <>
     {/* <StrictMode> */}
+    <SocketProvider>
+
       <Toaster closeButton />
       <AppTheme />
       <App />
+    </SocketProvider>
     {/* </StrictMode> */}
     ,
   </>

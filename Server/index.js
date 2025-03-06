@@ -6,7 +6,9 @@ import cors from 'cors';
 import AdminRouter from './Routes/Admin/AdminRoutes.js';
 import UserRouter from './Routes/User/UserRoutes.js';
 import { getUserInfo, verifyToken } from './Middlewares/AuthMiddleware.js';
-import { logOut } from './Controllers/User/userAuthController.js';
+import { Server } from 'socket.io';
+import http from 'http';
+import setupSocket from './utils/Socket.js';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.use(cookieParser());
 // Serve static files from the 'uploads' directory
 app.use('/pizza-image', express.static('uploads'));
 
+export const server = http.createServer(app);
+
 // Cors for cross connection between frontend and backend.
 app.use(cors({
     origin: process.env.CLIENT_URL,
@@ -29,10 +33,10 @@ app.use(cors({
 }));
 
 // Middleware to get logged user info along with its role(Admin | user).
-app.use("*",(req, res, next) => {
-    console.log(req.method, req.path);
-    next();
-});
+// app.use("*",(req, res, next) => {
+//     console.log(req.method, req.path);
+//     next();
+// });
 
 app.get("/api/v1/auth/get-user-info",verifyToken,getUserInfo);
 
@@ -44,6 +48,8 @@ app.get("/",(req, res, next) => {
     next();
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+
+setupSocket(server);
