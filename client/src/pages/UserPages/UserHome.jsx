@@ -12,7 +12,6 @@ const UserHome = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedPizza, setSelectedPizza] = useState(null);
   const addToCart = useCartStore((state) => state.addToCart);
-  const addCustomizedPizza = useCartStore((state) => state.addCustomizedPizza);
 
   useEffect(() => {
     const fetchPizzas = async () => {
@@ -68,7 +67,7 @@ const UserHome = () => {
   }, []);
 
   const handleAddToCart = (pizza) => {
-    addToCart(pizza);
+    addToCart(pizza, []);
     toast.success("Pizza added to cart");
   };
 
@@ -77,7 +76,8 @@ const UserHome = () => {
   };
 
   const handleSaveCustomizedPizza = (customizedPizza) => {
-    addCustomizedPizza(customizedPizza);
+    // Pass customizations to addToCart
+    addToCart(customizedPizza, customizedPizza.customizations === null ? [] : customizedPizza.customizations);
     toast.success("Customized pizza added to cart");
     setSelectedPizza(null);
   };
@@ -172,13 +172,13 @@ const UserHome = () => {
                 {/* Buttons */}
                 <div className="mt-4 flex justify-between gap-2">
                   <button
-                    className="bg-green-500 hover:bg-green-600 text-white text-center px-3 py-2 rounded-lg shadow-md transition-all flex-1 flex items-center justify-around"
+                    className="bg-green-500 hover:bg-green-600 hover:scale-95 text-white text-center px-3 py-2 rounded-lg shadow-md transition-all flex-1 flex items-center justify-around"
                     onClick={() => handleAddToCart(pizza)}
                   >
                     <FaCartPlus />  Add
                   </button>
                   <button
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md transition-all flex-1"
+                    className="bg-blue-500 hover:bg-blue-600 hover:scale-95 text-white px-3 py-2 rounded-lg shadow-md transition-all flex-1"
                     onClick={() => handleCustomizePizza(pizza)}
                   >
                     🎨 Customize

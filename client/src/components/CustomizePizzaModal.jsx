@@ -71,9 +71,22 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
   };
 
   const handleSave = () => {
-    if (!customizedPizza.customizations.base) {
-      setError("Base is required");
-      return;
+
+    if (customizedPizza.customizations.base === pizza.base.name) {
+      delete customizedPizza.customizations.base;
+    }
+    if (customizedPizza.customizations.sauce.length === 0) {  
+      delete customizedPizza.customizations.sauce;
+    }
+    if (customizedPizza.customizations.cheese.length === 0) {
+      delete customizedPizza.customizations.cheese;
+    }
+    if (customizedPizza.customizations.toppings.length === 0) {
+      delete customizedPizza.customizations.toppings;
+    }
+    // Convert empty object to empty array
+    if (Object.keys(customizedPizza.customizations).length === 0) {
+      customizedPizza.customizations = [];
     }
     onSave(customizedPizza);
   };
@@ -91,6 +104,7 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
                 type="radio"
                 name="base"
                 value={base.name}
+                required
                 checked={customizedPizza.customizations.base === base.name}
                 onChange={(e) => handleChange(e, "base")}
               />

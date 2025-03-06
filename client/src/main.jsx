@@ -28,11 +28,11 @@ const AppTheme = () => {
 
 createRoot(document.getElementById("root")).render(
   <>
-    <StrictMode>
+    {/* <StrictMode> */}
       <Toaster closeButton />
       <AppTheme />
       <App />
-    </StrictMode>
+    {/* </StrictMode> */}
     ,
   </>
 );

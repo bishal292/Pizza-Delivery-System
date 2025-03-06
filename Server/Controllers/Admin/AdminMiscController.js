@@ -11,6 +11,13 @@ export const dashboard = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- Inventory Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+  */
+
 export const inventory = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -26,6 +33,7 @@ export const inventory = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
 export const addProduct = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -161,6 +169,13 @@ export const deleteProduct = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- Pizza Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+  */
+
 export const getPizzas = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -441,7 +456,29 @@ export const deletePizza = async (req, res, next) => {
   }
 };
 
-export const liveOrders = async (req, res, next) => {};
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- Orders Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+ */
 
+export const allOrders = async (req, res, next) => {};
+export const liveOrders = async (req, res, next) => {};
 export const updateOrderStatus = async (req, res, next) => {};
 export const CompletedOrders = async (req, res, next) => {};
+export const CancelledOrders = async (req, res, next) => {};
+export const PendingOrders = async (req, res, next) => {};
+export const OrderDetails = async (req, res, next) => {};
+
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- User Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+ */
+
+export const allUsers = async (req, res, next) => {};
+export const updateUser = async (req, res, next) => {};
+export const deleteUser = async (req, res, next) => {};
+export const userDetails = async (req, res, next) => {};
+export const userOrders = async (req, res, next) => {};
+export const userCart = async (req, res, next) => {};

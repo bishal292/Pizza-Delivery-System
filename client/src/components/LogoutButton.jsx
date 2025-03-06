@@ -12,9 +12,12 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const response = await apiClient.get( userInfo.role =='user' ? USER_AUTH_LOGOUT : ADMIN_AUTH_LOGOUT, {
-        withCredentials: true,
-      });
+      const response = await apiClient.get(
+        userInfo.role == "user" ? USER_AUTH_LOGOUT : ADMIN_AUTH_LOGOUT,
+        {
+          withCredentials: true,
+        }
+      );
       console.log(response);
       if (response.status === 200) {
         toast.warning("Logged Out Successfully");
@@ -29,6 +32,8 @@ const LogoutButton = () => {
   return (
     <div>
       <Button
+        className="bg-red-500 text-white
+        px-4 py-2 rounded hover:bg-red-800 hover:shadow-lg "
         onClick={handleLogout}
         disabled={isLoggingOut}
       >

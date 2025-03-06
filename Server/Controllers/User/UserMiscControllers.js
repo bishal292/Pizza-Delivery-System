@@ -3,6 +3,7 @@ import { Cart } from "../../db/models/CartModel.js";
 import { User } from "../../db/models/UserModel.js";
 import { Inventory } from "../../db/models/InventoryModel.js";
 
+
 export const getPizzas = async (req, res, next) => {
   try {
     const pizzas = await Pizza.find().sort({ updatedAt: -1 }).populate("base sauce cheese toppings", "name price");
@@ -15,6 +16,12 @@ export const getPizzas = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- Cart Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+  */
 
 export const addToCart = async (req, res, next) => {
   try {
@@ -100,6 +107,7 @@ export const clearCart = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
 export const getOptions = async (req, res, next) => {
   try {
     const bases = await Inventory.find({ category: "base" });
@@ -113,3 +121,11 @@ export const getOptions = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+export const placeOrder = async (req, res, next) => {
+}
+
+export const getOrders = async (req, res, next) => {
+}
+export const getOrder = async (req, res, next) => {
+}
