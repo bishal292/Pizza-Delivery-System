@@ -15,7 +15,7 @@ const ImageSlider = ({ images }) => {
   };
 
   return (
-    <div className="image-slider my-6">
+    <div className="image-slider mb-6">
       <Slider {...settings}>
         {images.map((image, index) => (
           <div key={index}>

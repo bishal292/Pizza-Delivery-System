@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom'
 
 const AdminLayout = () => {
   return (
-    <div>
+    <div className='overflow-x-hidden'>
       <AdminHeader />
       <Outlet />
     </div>

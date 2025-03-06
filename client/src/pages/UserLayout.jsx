@@ -5,8 +5,10 @@ import { Outlet } from "react-router-dom";
 const UserLayout = () => {
   return (
     <>
-    <UserHeader />
-      <Outlet />
+      <div className="overflow-x-hidden">
+        <UserHeader />
+        <Outlet />
+      </div>
     </>
   );
 };
