@@ -1,21 +1,57 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useCartStore from "@/Store/cartStore";
-import { HOST } from "@/utils/constant";
+import { HOST, USER_GET_CART } from "@/utils/constant";
+import { toast } from "sonner";
+import { apiClient } from "@/utils/api-client";
 
 const UserCart = () => {
   const cart = useCartStore((state) => state.cart);
+  const setCart = useCartStore((state) => state.setCart);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const increaseQuantity = useCartStore((state) => state.increaseQuantity);
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
-    console.log(cart);
-  }, [])
+    const calculateTotalPrice = () => {
+      const total = cart.reduce((sum, item) => {
+        return sum + item.pizza.price * item.quantity;
+      }, 0);
+      setTotalPrice(total);
+    };
+
+    calculateTotalPrice();
+  }, [cart]);
+
+  useEffect(() => {
+    const getCart = async () => {
+      try {
+        const response = await apiClient.get(USER_GET_CART, {
+          withCredentials: true,
+        });
+        console.log("Response",response);
+        if (response.status === 200) {
+          console.log("Cart",response.data);
+          setCart(response.data.items);
+        }
+      } catch (error) {
+        console.error("Error fetching cart", error);
+        toast.error(error.response?.data || error.response?.message);
+      }
+    };
+
+    getCart();
+    console.log("Local Cart", cart);
+  }, []);
 
   function isCustomized(item) {
     const { pizza, customizations } = item;
     // Return false if we have no customizations or if it's just an empty array
-    if (!customizations || Array.isArray(customizations) || Object.keys(customizations).length === 0) {
+    if (
+      !customizations ||
+      typeof customizations !== "object" ||
+      Object.keys(customizations).length === 0
+    ) {
       return false;
     }
 
@@ -84,6 +120,9 @@ const UserCart = () => {
                 <b>Toppings:</b>{" "}
                 {item.pizza.toppings?.map((t) => t.name).join(", ")}
               </p>
+              <p className="text-lg font-bold mt-3">
+                ₹ {item.pizza.price * item.quantity}
+              </p>
               {customized && (
                 <div className="mt-2">
                   <b>Customizations:</b>
@@ -108,7 +147,9 @@ const UserCart = () => {
               )}
               <div className="flex items-center space-x-4 mt-auto">
                 <button
-                  className={`bg-blue-500 text-white px-4 py-1 rounded ${ item.quantity === 1 ? "opacity-50 cursor-not-allowed" : "" }`}
+                  className={`bg-blue-500 text-white px-4 py-1 rounded ${
+                    item.quantity === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={() =>
                     decreaseQuantity(item.pizza._id, item.customizations)
                   }
@@ -116,7 +157,9 @@ const UserCart = () => {
                   -
                 </button>
                 <button
-                  className={`bg-blue-500 text-white px-4 py-1 rounded ${ item.quantity >= 10 ? "opacity-50 cursor-not-allowed" : "" }`}
+                  className={`bg-blue-500 text-white px-4 py-1 rounded ${
+                    item.quantity >= 10 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={() =>
                     increaseQuantity(item.pizza._id, item.customizations)
                   }
@@ -135,6 +178,12 @@ const UserCart = () => {
             </div>
           );
         })}
+      </div>
+      <div className="mt-6 text-right">
+        <h2 className="text-xl font-bold">Total Price: ${totalPrice}</h2>
+        <button className="bg-green-500 text-white px-4 py-2 rounded mt-2">
+          Place Order
+        </button>
       </div>
     </div>
   );
