@@ -3,7 +3,7 @@ import { create } from "zustand";
 const useCartStore = create((set) => ({
   cart: [],
 
-  addToCart: (pizza, customizations = []) =>
+  addToCart: (pizza, customizations = {}) =>
     set((state) => {
       const existingItemIndex = state.cart.findIndex(
         (item) =>
@@ -27,7 +27,7 @@ const useCartStore = create((set) => ({
         };
       }
     }),
-  removeFromCart: (pizzaId, customizations = []) =>
+  removeFromCart: (pizzaId, customizations = {}) =>
     set((state) => ({
       cart: state.cart.filter(
         (item) =>
@@ -38,7 +38,7 @@ const useCartStore = create((set) => ({
 
   clearCart: () => set({ cart: [] }),
 
-  increaseQuantity: (pizzaId, customizations = []) =>
+  increaseQuantity: (pizzaId, customizations = {}) =>
     set((state) => ({
       cart: state.cart.map((item) =>
         item.pizza._id === pizzaId &&
@@ -48,7 +48,7 @@ const useCartStore = create((set) => ({
       ),
     })),
 
-  decreaseQuantity: (pizzaId, customizations = []) =>
+  decreaseQuantity: (pizzaId, customizations = {}) =>
     set((state) => ({
       cart: state.cart.map((item) =>
         item.pizza._id === pizzaId &&
@@ -58,6 +58,7 @@ const useCartStore = create((set) => ({
           : item
       ),
     })),
+    setCart: (cart) => set({ cart }),
 }));
 
 export default useCartStore;

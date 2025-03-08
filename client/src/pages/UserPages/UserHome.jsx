@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { apiClient } from "@/utils/api-client";
-import { HOST, USER_GET_PIZZAS } from "@/utils/constant";
+import { HOST, USER_ADD_TO_CART, USER_GET_PIZZAS } from "@/utils/constant";
 import { toast } from "sonner";
 import useCartStore from "@/Store/cartStore";
 import ImageSlider from "@/components/ImageSlider";
 import CustomizePizzaModal from "@/components/CustomizePizzaModal"; // Import the CustomizePizzaModal component
 import { FaCartPlus } from "react-icons/fa6";
+import { Pizza } from "lucide-react";
 
 const UserHome = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -67,18 +68,39 @@ const UserHome = () => {
   }, []);
 
   const handleAddToCart = (pizza) => {
-    addToCart(pizza, []);
+    addToCart(pizza);
+    console.log("Pizza added to cart", pizza);
+    addToServerCart(pizza);
     toast.success("Pizza added to cart");
   };
 
   const handleCustomizePizza = (pizza) => {
     setSelectedPizza(pizza);
   };
-
+  const addToServerCart = async (pizza,customizations = {}) => {
+    try {
+      const item ={
+        pizzaId: pizza._id,
+        quantity: 1,
+        customizations,
+        price: pizza.price,
+      }
+      const response = await apiClient.post(USER_ADD_TO_CART, { item }, { withCredentials: true });
+      console.log(response);
+      if (response.status === 201) {
+        toast.success(response.data);
+      }
+    } catch (error) {
+      toast.error(error.response?.data || error.response?.message);
+    }
+  };
   const handleSaveCustomizedPizza = (customizedPizza) => {
     // Pass customizations to addToCart
-    addToCart(customizedPizza, customizedPizza.customizations === null ? [] : customizedPizza.customizations);
-    toast.success("Customized pizza added to cart");
+    selectedPizza.price = customizedPizza.price;
+    const customizations = customizedPizza.customizations === null ? {} : customizedPizza.customizations;
+    addToCart(selectedPizza, customizations);
+    addToServerCart(selectedPizza,customizations);
+    toast.success("pizza added to cart");
     setSelectedPizza(null);
   };
 

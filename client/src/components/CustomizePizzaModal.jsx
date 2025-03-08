@@ -6,7 +6,7 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
   const [customizedPizza, setCustomizedPizza] = useState({
     ...pizza,
     customizations: {
-      base: pizza.base.name,
+      base: pizza.base._id,
       sauce: [],
       cheese: [],
       toppings: [],
@@ -23,6 +23,7 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
 
   useEffect(() => {
     fetchOptions();
+    console.log("Pizza", pizza);
   }, []);
   useEffect(() => {
     calculatePrice();
@@ -86,8 +87,9 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
     }
     // Convert empty object to empty array
     if (Object.keys(customizedPizza.customizations).length === 0) {
-      customizedPizza.customizations = [];
+      customizedPizza.customizations = {};
     }
+    customizedPizza.price = price;
     onSave(customizedPizza);
   };
 
@@ -103,9 +105,9 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
               <input
                 type="radio"
                 name="base"
-                value={base.name}
+                value={base._id}
                 required
-                checked={customizedPizza.customizations.base === base.name}
+                checked={customizedPizza.customizations.base === base._id}
                 onChange={(e) => handleChange(e, "base")}
               />
               {base.name}
@@ -118,8 +120,8 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
             <label key={sauce._id}>
               <input
                 type="checkbox"
-                value={sauce.name}
-                checked={customizedPizza.customizations.sauce.includes(sauce.name)}
+                value={sauce._id}
+                checked={customizedPizza.customizations.sauce.includes(sauce._id)}
                 onChange={(e) => handleChange(e, "sauce")}
               />
               {sauce.name}
@@ -132,8 +134,8 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
             <label key={cheese._id}>
               <input
                 type="checkbox"
-                value={cheese.name}
-                checked={customizedPizza.customizations.cheese.includes(cheese.name)}
+                value={cheese._id}
+                checked={customizedPizza.customizations.cheese.includes(cheese._id)}
                 onChange={(e) => handleChange(e, "cheese")}
               />
               {cheese.name}
@@ -146,8 +148,8 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
             <label key={topping._id}>
               <input
                 type="checkbox"
-                value={topping.name}
-                checked={customizedPizza.customizations.toppings.includes(topping.name)}
+                value={topping._id}
+                checked={customizedPizza.customizations.toppings.includes(topping._id)}
                 onChange={(e) => handleChange(e, "toppings")}
               />
               {topping.name}
