@@ -5,6 +5,7 @@ dotenv.config();
 import nodemailer from "nodemailer";
 import multer from "multer";
 import fs from "fs";
+import { Inventory } from "../db/models/InventoryModel.js";
 
 // maxAge for token expiration time in seconds(3 days).
 const maxAge = 3 * 24 * 60 * 60;
@@ -85,3 +86,28 @@ const storage = multer.diskStorage({
  * Function to upload image to a defined storage directory in the server.
  */
 export const upload = multer({ storage: storage });
+
+
+/**
+ * Function to Calculate price of customized pizza on base of customizations.
+ * @param {Object}  pizza -> Pizza object for which price is to be calculated.
+ * @param {Object} Customizations -> customizations array according to which price will vary.
+ * @returns {Number} Returns price of the customized pizza.
+ */
+export const calculatePrice = async (pizza, customizations) => {
+  let price = pizza.price;
+
+  if (customizations.base) {
+    const baseItem = await Inventory.findById(customizations.base);
+    if (baseItem) price += baseItem.price - pizza.base.price;
+  }
+
+  for (const category of ["sauce", "cheese", "toppings"]) {
+    for (const itemId of customizations[category] || []) {
+      const item = await Inventory.findById(itemId);
+      if (item) price += item.price;
+    }
+  }
+
+  return price;
+};

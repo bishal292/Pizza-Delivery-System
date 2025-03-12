@@ -12,7 +12,7 @@ const cartSchema = new mongoose.Schema({
     {
       pizza: {
         type: mongoose.Schema.Types.ObjectId,
-        refPath: 'Pizza',
+        ref: 'Pizza',
         required: true
       },
       quantity: { type: Number, required: true, min: 1 },
@@ -22,15 +22,22 @@ const cartSchema = new mongoose.Schema({
         cheese: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }],
         toppings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }]
       },
-      price: { type: Number, required: true } // Price based on the pizza and customizations
+      price: { type: Number, required: true }, // Price based on the pizza and customizations
+      finalPrice: { 
+        type: Number, 
+        required: true, 
+        default: function() { return this.price * this.quantity; } // Calculated price based on quantity
+      }
     }
   ],
   totalPrice: { type: Number, required: true, default: 0 }, // Calculated total price
 }, { timestamps: true});
 // Middleware to auto-update the `updatedAt` field and total price of the cart.
 cartSchema.pre('save', function (next) {
-  this.totalPrice = this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  this.updatedAt = Date.now();
+  this.items.forEach(item => {
+    item.finalPrice = item.price * item.quantity;
+  });
+  this.totalPrice = this.items.reduce((sum, item) => sum + item.finalPrice, 0);
   next();
 });
 

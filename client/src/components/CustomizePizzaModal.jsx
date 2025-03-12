@@ -61,13 +61,26 @@ const CustomizePizzaModal = ({ pizza, onSave, onClose }) => {
 
   const calculatePrice = () => {
     let newPrice = pizza.price;
-    const originalBasePrice = options.bases.find((base) => base.name === pizza.base.name)?.price || 0;
-    const newBasePrice = options.bases.find((base) => base.name === customizedPizza.customizations.base)?.price || 0;
+    const originalBasePrice = options.bases.find((base) => base._id === pizza.base._id)?.price || 0;
+    const newBasePrice = options.bases.find((base) => base._id === customizedPizza.customizations.base)?.price || 0;
     const priceDifference = newBasePrice - originalBasePrice;
     newPrice += priceDifference;
-    newPrice += customizedPizza.customizations.sauce.length * 20;
-    newPrice += customizedPizza.customizations.cheese.length * 40;
-    newPrice += customizedPizza.customizations.toppings.length * 30;
+
+    customizedPizza.customizations.sauce.forEach((sauceId) => {
+      const saucePrice = options.sauces.find((sauce) => sauce._id === sauceId)?.price || 0;
+      newPrice += saucePrice;
+    });
+
+    customizedPizza.customizations.cheese.forEach((cheeseId) => {
+      const cheesePrice = options.cheeses.find((cheese) => cheese._id === cheeseId)?.price || 0;
+      newPrice += cheesePrice;
+    });
+
+    customizedPizza.customizations.toppings.forEach((toppingId) => {
+      const toppingPrice = options.toppings.find((topping) => topping._id === toppingId)?.price || 0;
+      newPrice += toppingPrice;
+    });
+
     setPrice(newPrice);
   };
 

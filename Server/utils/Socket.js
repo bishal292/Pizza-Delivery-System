@@ -1,4 +1,5 @@
 import { Server as SocketIOServer } from "socket.io";
+import { Cart } from "../db/models/CartModel.js";
 
 const setupSocket = (server) => {
     const io = new SocketIOServer(server, {
@@ -27,13 +28,67 @@ const setupSocket = (server) => {
         if (userId) {
             userSocketMap.set(userId, socket.id);
             console.log(`User connected: ${userId} with socked ID: ${socket.id}`);
-        }else{
+        } else {
             console.log(`user ID not provided during connection.`);
         }
         
         socket.on("disconnect", () => {
             disconnectUser(socket);
         });
+
+        socket.on("increase-quantity", async ({ pizzaId, index }, callback) => {
+            console.log("Increase quantity", pizzaId, index);
+            try {
+                const cart = await Cart.findOne({ user: userId });
+                if (!cart) {
+                    return callback({ status: "error", error: "Cart not found" });
+                }
+                if (index < 0 || index >= cart.items.length) {
+                    return callback({ status: "error", error: "Invalid index" });
+                }
+                const item = cart.items[index];
+                if (item.pizza.toString() !== pizzaId) {
+                    return callback({ status: "error", error: "Pizza ID mismatch" });
+                }
+                if (item.quantity >= 10) {
+                    return callback({ status: "error", error: "Maximum quantity reached" });
+                }
+                item.quantity += 1;
+                item.finalPrice = item.price * item.quantity;
+                await cart.save();
+                callback({ status: "ok", data: { newQuantity: item.quantity } });
+            } catch (error) {
+                console.error(error.message);
+                callback({ status: "error", error: "Internal Server Error" });
+            }
+        });
+
+        socket.on("decrease-quantity", async ({ pizzaId, index }, callback) => {
+            try {
+                const cart = await Cart.findOne({ user: userId });
+                if (!cart) {
+                    return callback({ status: "error", error: "Cart not found" });
+                }
+                if (index < 0 || index >= cart.items.length) {
+                    return callback({ status: "error", error: "Invalid index" });
+                }
+                const item = cart.items[index];
+                if (item.pizza.toString() !== pizzaId) {
+                    return callback({ status: "error", error: "Pizza ID mismatch" });
+                }
+                if (item.quantity <= 1) {
+                    return callback({ status: "error", error: "Minimum quantity reached" });
+                }
+                item.quantity -= 1;
+                item.finalPrice = item.price * item.quantity;
+                await cart.save();
+                callback({ status: "ok", data: { newQuantity: item.quantity } });
+            } catch (error) {
+                console.error(error.message);
+                callback({ status: "error", error: "Internal Server Error" });
+            }
+        });
     });
-}
+};
+
 export default setupSocket;

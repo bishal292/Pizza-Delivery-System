@@ -5,11 +5,14 @@ const useCartStore = create((set) => ({
 
   addToCart: (pizza, customizations = {}) =>
     set((state) => {
-      const existingItemIndex = state.cart.findIndex(
-        (item) =>
-          item.pizza._id === pizza._id &&
-          JSON.stringify(item.customizations) === JSON.stringify(customizations)
-      );
+      const existingItemIndex =
+        state.cart.length > 0 &&
+        state.cart.findIndex(
+          (item) =>
+            item.pizza._id === pizza._id &&
+            JSON.stringify(item.customizations) ===
+              JSON.stringify(customizations)
+        );
       if (existingItemIndex !== -1) {
         return {
           cart: state.cart.map((item, idx) =>
@@ -20,45 +23,34 @@ const useCartStore = create((set) => ({
         };
       } else {
         return {
-          cart: [
-            ...state.cart,
-            { pizza, quantity: 1, customizations },
-          ],
+          cart: [...state.cart, { pizza, quantity: 1, customizations }],
         };
       }
     }),
-  removeFromCart: (pizzaId, customizations = {}) =>
+  removeFromCart: (index) =>
     set((state) => ({
-      cart: state.cart.filter(
-        (item) =>
-          item.pizza._id !== pizzaId ||
-          JSON.stringify(item.customizations) !== JSON.stringify(customizations)
-      ),
+      cart: state.cart.remove(index),
     })),
 
   clearCart: () => set({ cart: [] }),
 
-  increaseQuantity: (pizzaId, customizations = {}) =>
-    set((state) => ({
-      cart: state.cart.map((item) =>
-        item.pizza._id === pizzaId &&
-        JSON.stringify(item.customizations) === JSON.stringify(customizations) && item.quantity < 10
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ),
-    })),
+  increaseQuantity: (index, newQuantity) =>
+    set((state) => {
+      const updatedCart = [...state.cart];
+      updatedCart[index].quantity = newQuantity;
+      updatedCart[index].finalPrice += updatedCart[index].price;
+      return { cart: updatedCart };
+    }),
 
-  decreaseQuantity: (pizzaId, customizations = {}) =>
-    set((state) => ({
-      cart: state.cart.map((item) =>
-        item.pizza._id === pizzaId &&
-        JSON.stringify(item.customizations) === JSON.stringify(customizations) &&
-        item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      ),
-    })),
-    setCart: (cart) => set({ cart }),
+  decreaseQuantity: (index, newQuantity) =>
+    set((state) => {
+      const updatedCart = [...state.cart];
+      updatedCart[index].quantity = newQuantity;
+      updatedCart[index].finalPrice += updatedCart[index].price;
+      return { cart: updatedCart };
+    }),
+
+  setCart: (newCart) => set({ cart: newCart }),
 }));
 
 export default useCartStore;

@@ -1,12 +1,13 @@
 import { useAppStore } from "@/Store/store";
 import { HOST } from "@/utils/constant";
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const socket = useRef(null);
     const { userInfo } = useAppStore();
+    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
         if (socket.current) {
@@ -14,15 +15,17 @@ export const SocketProvider = ({ children }) => {
         }
         socket.current = io(HOST, {
             withCredentials: true,
-            query: { userId: userInfo?._id},
+            query: { userId: userInfo?._id },
         });
 
         socket.current.on("connect", () => {
             console.log("Connected to socket server");
+            setIsConnected(true);
         });
 
         socket.current.on("disconnect", () => {
             console.log("Disconnected from socket server");
+            setIsConnected(false);
         });
 
         return () => {
@@ -31,7 +34,7 @@ export const SocketProvider = ({ children }) => {
     }, [userInfo]);
 
     return (
-        <SocketContext.Provider value={socket.current}>
+        <SocketContext.Provider value={{ socket: socket.current, isConnected }}>
             {children}
         </SocketContext.Provider>
     );
