@@ -6,23 +6,27 @@ import {
   RouterProvider,
   useParams,
 } from "react-router-dom";
-import UserLayout from "./pages/UserLayout";
-import UserHome from "./pages/UserPages/UserHome";
-import UserCart from "./pages/UserPages/UserCart";
-import UserAuth from "./pages/UserPages/UserAuth";
+import AdminLayout from "./pages/AdminLayout";
+import AdminInventory from "./pages/AdminPages/AdminInventory";
+import AdminDashboard from "./pages/AdminPages/AdminDashboard";
+import AdminAuth from "./pages/AdminPages/AdminAuth";
 import { apiClient } from "./utils/api-client";
 import { GET_LOGGED_USER_INFO } from "./utils/constant";
-import UserOrders from "./pages/UserPages/UserOrders";
+import AdminOrders from "./pages/AdminPages/AdminOrders";
+import AdminPizza from "./pages/AdminPages/AdminPizza";
+import PizzaDetails from "./pages/AdminPages/PizzaDetails";
+import AdminUsersList from "./pages/AdminPages/AdminUsersList";
+import AdminUpdateUser from "./pages/AdminPages/AdminUpdateUser";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
   const { userInfo } = useAppStore();
   const isAuthenticated = !!userInfo; // If there is userInfo, then isAuthenticated is true
-  const isUser = userInfo?.role === "user";
+  const isAdmin = userInfo?.role === "admin";
 
   // if user is not authenticated, redirect to login page for the respective user
-  if (!isAuthenticated || !isUser) {
-    return <Navigate to="/pizzeria/auth/login" replace />;
+  if (!isAuthenticated || !isAdmin) {
+    return <Navigate to="/admin/auth/login" replace />;
   }
 
   return children;
@@ -31,8 +35,9 @@ const PrivateRoutes = ({ children }) => {
 // Auth Routes Component
 const AuthRoutes = ({ children }) => {
   const { userInfo } = useAppStore();
-  if (userInfo?.role && userInfo.role === "user") {
-    return <Navigate to="/pizzeria/home" replace />;
+
+  if (userInfo?.role && userInfo.role === "admin") {
+    return <Navigate to="/admin/dashboard" replace />;
   }
   return children;
 };
@@ -41,10 +46,9 @@ const AuthRoutes = ({ children }) => {
 const AuthWrapper = ({ Component }) => {
   const { action } = useParams();
   const validActions = ["login", "signup", "forgot", "resetPassword"];
-  console.log(action);
 
   if (!validActions.includes(action)) {
-    return <Navigate to="/pizzeria/auth/login" replace />;
+    return <Navigate to="/admin/auth/login" replace />;
   }
 
   return <Component action={action} />;
@@ -53,35 +57,36 @@ const AuthWrapper = ({ Component }) => {
 // Router Configuration
 const router = createBrowserRouter([
   {
-    path: "/pizzeria/auth/:action",
+    path: "/admin/auth/:action",
     element: (
       <AuthRoutes>
-        <AuthWrapper Component={UserAuth} />
+        <AuthWrapper Component={AdminAuth} />
       </AuthRoutes>
     ),
   },
   {
-    path: "/pizzeria",
+    path: "/admin",
     element: (
       <PrivateRoutes>
-        <UserLayout />
+        <AdminLayout />
       </PrivateRoutes>
     ),
     children: [
-      { index: true, element: <Navigate to="home" replace /> },
-      { path: "home", element: <UserHome /> },
-      { path: "orders", element: <UserOrders /> },
-      { path: "cart", element: <UserCart /> },
-      // { path: "*", element: <Navigate to="home" /> },
+      { path: "dashboard", element: <AdminDashboard /> },
+      { path: "pizzas", element: <AdminPizza /> },
+      { path: "inventory", element: <AdminInventory /> },
+      { path: "orders", element: <AdminOrders /> },
+      { path: "users-list", element: <AdminUsersList /> },
+      { path: "user/:id", element: <AdminUpdateUser /> },
+      { path: "pizza/:id", element: <PizzaDetails /> },
     ],
   },
   {
     path: "*",
-    element: <Navigate to="/pizzeria/auth/login" />,
+    element: <Navigate to="/admin/auth/login" />,
   },
 ]);
 
-// App Component
 const App = () => {
   const { userInfo, setUserInfo } = useAppStore();
 

@@ -2,6 +2,10 @@ import { isValidObjectId } from "mongoose";
 import { Admin } from "../../db/models/AdminModel.js";
 import { Inventory } from "../../db/models/InventoryModel.js";
 import { Pizza } from "../../db/models/PizzaModels.js";
+import { User } from "../../db/models/UserModel.js";
+import { Cart } from "../../db/models/CartModel.js";
+import { Order } from "../../db/models/Orders.js";
+import { getFormattedCartItems } from "../../utils/util-functions.js";
 
 export const dashboard = async (req, res, next) => {
   try {
@@ -476,9 +480,130 @@ export const OrderDetails = async (req, res, next) => {};
   ----------------------------------------------------------------------------------------
  */
 
-export const allUsers = async (req, res, next) => {};
-export const updateUser = async (req, res, next) => {};
-export const deleteUser = async (req, res, next) => {};
-export const userDetails = async (req, res, next) => {};
-export const userOrders = async (req, res, next) => {};
-export const userCart = async (req, res, next) => {};
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("No Such Admin Found");
+    const users = await User.find().sort({ updatedAt: -1 });
+    if (!users) {
+      return res.status(404).send("No Users found");
+    }
+
+    const usersWithDetails = await Promise.all(users.map(async (user) => {
+      const orders = await Order.find({ userId: user._id });
+      const totalOrders = orders.length;
+      const totalAmountSpent = orders.reduce((acc, order) => acc + order.totalPrice, 0);
+      const cartItems = await Cart.find({ userId: user._id });
+      const totalCartItems = cartItems.items.length;
+
+      return {
+        ...user.toObject(),
+        totalOrders,
+        totalAmountSpent,
+        totalCartItems
+      };
+    }));
+
+    res.status(200).send(usersWithDetails);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+export const updateUser = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("Your Admin Account is not found");
+    const { id } = req.query;
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).send("Invalid User ID");
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const { name, email ,password} = req.body;
+    if (!name && !email && !password) {
+      return res
+        .status(400)
+        .send("Some fields are required to update among name, email, password.");
+    }
+
+    const updatedFields = {};
+    if (name) updatedFields.name = name;
+    if (email) updatedFields.email = email;
+    if (password) updatedFields.password = password;
+
+    const updatedUser = await User.findByIdAndUpdate(id, updatedFields);
+    if (!updatedUser) {
+      return res.status(500).send("Error updating user");
+    }
+    res
+      .status(200)
+      .json({ message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+export const deleteUser = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("Your Admin Account is not found");
+    const { id } = req.query;
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).send("Invalid User ID");
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(500).send("Error deleting user");
+    }
+    res
+      .status(200)
+      .json({ message: "User deleted successfully"});
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+export const userOrders = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send("No Such Admin Found");
+    const {id} = req.query;
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).send("Invalid User ID");
+    }
+    const orders = await Order.find({
+      userId: id
+    }).sort({updatedAt:-1});
+    if (!orders) {
+      return res.status(404).send("No Orders found");
+    }
+    const formattedUserOrder = orders.map(async order => {
+      const foramattedItem = await getFormattedCartItems({cart:order})
+      return {
+        orderId: order._id,
+        items: foramattedItem,
+        totalPrice: order.totalPrice,
+        status: order.status,
+        createdAt: order.createdAt
+      }
+    });
+    
+    res.status(200).send(formattedUserOrder);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};

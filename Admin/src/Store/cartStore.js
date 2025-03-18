@@ -46,7 +46,7 @@ const useCartStore = create((set) => ({
     set((state) => {
       const updatedCart = [...state.cart];
       updatedCart[index].quantity = newQuantity;
-      updatedCart[index].finalPrice -= updatedCart[index].price;
+      updatedCart[index].finalPrice += updatedCart[index].price;
       return { cart: updatedCart };
     }),
 

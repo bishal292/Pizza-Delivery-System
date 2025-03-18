@@ -18,18 +18,11 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+        Selection: false,
     },
-    cart: {
-        type: Array,
-        default: [],
-    },
-    orders: {
-        type: Array,
-        default: [],
-    },
-    customPizza:{
-        type: Array,
-        default: [],
+    address:{
+        type: String,
+        trim: true,
     },
     passwordChangedAt: Date,
     resetOTP: String,

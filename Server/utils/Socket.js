@@ -4,8 +4,17 @@ import { Cart } from "../db/models/CartModel.js";
 const setupSocket = (server) => {
     const io = new SocketIOServer(server, {
         cors: {
-            origin: process.env.CLIENT_URL,
-            methods: ["GET", "POST"],
+            origin: (origin, callback) => {
+                const allowedOrigins = process.env.CLIENT_URLS 
+                    ? process.env.CLIENT_URLS.split(',').map(url => url.trim()) 
+                    : []; // Handle undefined or improperly formatted CLIENT_URLS
+                if (!origin || allowedOrigins.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
+            methods: ["GET", "POST","PATCH"],
             credentials: true,
         },
     });
@@ -37,7 +46,6 @@ const setupSocket = (server) => {
         });
 
         socket.on("increase-quantity", async ({ pizzaId, index }, callback) => {
-            console.log("Increase quantity", pizzaId, index);
             try {
                 const cart = await Cart.findOne({ user: userId });
                 if (!cart) {

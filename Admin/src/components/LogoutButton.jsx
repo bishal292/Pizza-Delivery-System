@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { apiClient } from "@/utils/api-client";
-import { USER_AUTH_LOGOUT } from "@/utils/constant";
+import { ADMIN_AUTH_LOGOUT } from "@/utils/constant";
 import { useAppStore } from "@/Store/store";
 import { toast } from "sonner";
 
@@ -12,7 +12,7 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const response = await apiClient.get(USER_AUTH_LOGOUT,
+      const response = await apiClient.get(ADMIN_AUTH_LOGOUT,
         {
           withCredentials: true,
         }

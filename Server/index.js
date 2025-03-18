@@ -6,7 +6,6 @@ import cors from 'cors';
 import AdminRouter from './Routes/Admin/AdminRoutes.js';
 import UserRouter from './Routes/User/UserRoutes.js';
 import { getUserInfo, verifyToken } from './Middlewares/AuthMiddleware.js';
-import { Server } from 'socket.io';
 import http from 'http';
 import setupSocket from './utils/Socket.js';
 
@@ -27,14 +26,24 @@ export const server = http.createServer(app);
 
 // Cors for cross connection between frontend and backend.
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+        const allowedOrigins = process.env.CLIENT_URLS 
+            ? process.env.CLIENT_URLS.split(',').map(url => url.trim()) 
+            : []; // Handle undefined or improperly formatted CLIENT_URLS
+        
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH','DELETE'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
 
 // Middleware to get logged user info along with its role(Admin | user).
 // app.use("*",(req, res, next) => {
-//     console.log(req.method, req.path);
+//     `console`.log(req.method, req.path);
 //     next();
 // });
 
