@@ -27,6 +27,7 @@ export const ADMIN_GET_ALL_USERS = `${baseRoute}/admin/users-list`
 export const ADMIN_SEARCH_USER = `${baseRoute}/admin/user/search`
 export const ADMIN_UPDATE_USER = `${baseRoute}/admin/update-user`  // PATCH -> USER ID
 export const ADMIN_DELETE_USER = `${baseRoute}/admin/delete-user`  // DELETE -> USER ID
+export const ADMIN_USER_CART = `${baseRoute}/admin/user/cart`  // DELETE -> USER ID
 export const ADMIN_USER_ORDER_DETAILS = `${baseRoute}/admin/user-order-details`  // DELETE -> USER ID
 
 // Admin - Order Routes

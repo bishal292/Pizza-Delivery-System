@@ -525,20 +525,20 @@ export const getUserCart = async (req, res, next) => {
     if (!id || !isValidObjectId(id)) {
       return res.status(400).send("Invalid User ID");
     }
-    const cart = await Cart.findById(id);
+    const cart = await Cart.findById(id).populate("items.pizza");
     if (!cart) {
       return res.status(404).send("Cart not found");
     }
+    const user = await User.findById(cart.user);
     const formattedCart = await getFormattedCartItems({ cart });
     res.status(200).json({
       _id: cart._id,
-      user: cart.user,
+      userName: user.name,
       items: formattedCart,
       totalPrice: cart.totalPrice,
       createdAt: cart.createdAt,
       updatedAt: cart.updatedAt,
     });
-    res.status(200).send(cart);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
