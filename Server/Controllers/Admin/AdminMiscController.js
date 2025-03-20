@@ -6,6 +6,7 @@ import { User } from "../../db/models/UserModel.js";
 import { Cart } from "../../db/models/CartModel.js";
 import { Order } from "../../db/models/Orders.js";
 import { getFormattedCartItems } from "../../utils/util-functions.js";
+import { compare } from "bcrypt";
 
 export const dashboard = async (req, res, next) => {
   try {
@@ -132,12 +133,10 @@ export const updateProduct = async (req, res, next) => {
     if (!updatedProduct) {
       return res.status(500).send("Error updating product");
     }
-    res
-      .status(200)
-      .json({
-        message: "Product updated successfully",
-        product: updatedProduct,
-      });
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: updatedProduct,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
@@ -162,12 +161,10 @@ export const deleteProduct = async (req, res, next) => {
     if (!deletedProduct) {
       return res.status(500).send("Error deleting product");
     }
-    res
-      .status(200)
-      .json({
-        message: "Product deleted successfully",
-        product: deletedProduct,
-      });
+    res.status(200).json({
+      message: "Product deleted successfully",
+      product: deletedProduct,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
@@ -212,7 +209,8 @@ export const getPizzaDetails = async (req, res, next) => {
     }
 
     const pizza = await Pizza.findById(id).populate(
-      "base sauce cheese toppings","name"
+      "base sauce cheese toppings",
+      "name"
     );
     if (!pizza) {
       return res.status(404).send("Pizza not found");
@@ -233,12 +231,10 @@ export const imageUpload = async (req, res, next) => {
     if (!req.file) {
       return res.status(400).send("No file uploaded");
     }
-    res
-      .status(200)
-      .json({
-        message: "Image uploaded successfully",
-        imageUrl: req.file.filename,
-      });
+    res.status(200).json({
+      message: "Image uploaded successfully",
+      imageUrl: req.file.filename,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
@@ -485,25 +481,33 @@ export const getAllUsers = async (req, res, next) => {
     const userId = req.userId;
     const admin = await Admin.findById(userId);
     if (!admin) return res.status(404).send("No Such Admin Found");
-    const users = await User.find().sort({ updatedAt: -1 });
-    if (!users) {
-      return res.status(404).send("No Users found");
+
+    const skip = parseInt(req.query.skip) || 0;
+    const limit = parseInt(req.query.limit) || 50;
+    console.log("Skip", skip, "Limit", limit);
+
+    const users = await User.find().skip(skip).limit(limit);
+
+    if (!users.length) {
+      return res.status(204).send("No Users found");
     }
 
-    const usersWithDetails = await Promise.all(users.map(async (user) => {
-      const orders = await Order.find({ userId: user._id });
-      const totalOrders = orders.length;
-      const totalAmountSpent = orders.reduce((acc, order) => acc + order.totalPrice, 0);
-      const cartItems = await Cart.find({ userId: user._id });
-      const totalCartItems = cartItems.items.length;
+    // Fetching additional details for each user
+    const usersWithDetails = await Promise.all(
+      users.map(async (user) => {
+        const orders = await Order.find({ userId: user._id });
+        const totalOrders = orders.length;
+        const cart = await Cart.findOne({ user: user._id });
 
-      return {
-        ...user.toObject(),
-        totalOrders,
-        totalAmountSpent,
-        totalCartItems
-      };
-    }));
+        return {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          totalOrder: totalOrders,
+          cart: cart ? cart._id : null,
+        };
+      })
+    );
 
     res.status(200).send(usersWithDetails);
   } catch (error) {
@@ -511,6 +515,81 @@ export const getAllUsers = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+export const getUserCart = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("No Such Admin Found");
+    let { id } = req.query;
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).send("Invalid User ID");
+    }
+    const cart = await Cart.findById(id);
+    if (!cart) {
+      return res.status(404).send("Cart not found");
+    }
+    const formattedCart = await getFormattedCartItems({ cart });
+    res.status(200).json({
+      _id: cart._id,
+      user: cart.user,
+      items: formattedCart,
+      totalPrice: cart.totalPrice,
+      createdAt: cart.createdAt,
+      updatedAt: cart.updatedAt,
+    });
+    res.status(200).send(cart);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const getUserWithNameOrEmail = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("No Such Admin Found");
+    let { q: query } = req.query;
+    console.log("Name", query);
+    query = query.trim();
+    if (!query || query.length < 3) {
+      return res.status(400).send("Invalid User Name");
+    }
+    const users = await User.find({
+      $or: [
+        { name: new RegExp(query, "i") },
+        { email: new RegExp(query, "i") },
+      ],
+    });
+
+    if (!users.length) {
+      return res.status(404).send("No Users found");
+    }
+
+    const usersWithDetails = await Promise.all(
+      users.map(async (user) => {
+        const orders = await Order.find({ userId: user._id });
+        const totalOrders = orders.length;
+        const cart = await Cart.findOne({ user: user._id });
+
+        return {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          totalOrder: totalOrders,
+          cart: cart ? cart._id : null,
+        };
+      })
+    );
+
+    res.status(200).send(usersWithDetails);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 export const updateUser = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -521,26 +600,42 @@ export const updateUser = async (req, res, next) => {
       return res.status(400).send("Invalid User ID");
     }
 
-    const user = await User.findById(id);
+    const user = await User.findById(id).select("+password");
     if (!user) {
       return res.status(404).send("User not found");
     }
-    const { name, email ,password} = req.body;
+    const { name, email, password } = req.body;
+
     if (!name && !email && !password) {
       return res
         .status(400)
-        .send("Some fields are required to update among name, email, password.");
+        .send("Any fields are required to update among name, email, password.");
     }
 
+    if (name && (name.length < 3 || name === user.name)) {
+      return res
+        .status(400)
+        .send(
+          "Name must be at least 3 characters long and different than previous to be updated."
+        );
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (
+      email &&
+      (email.length < 7 || !emailRegex.test(email) || email === user.email)
+    ) {
+      return res.status(400).send("Invalid Email");
+    }
+    if (password && (await compare(password, user.password))) {
+      return res
+        .status(400)
+        .send("New password must be different from the old password");
+    }
     const updatedFields = {};
     if (name) updatedFields.name = name;
     if (email) updatedFields.email = email;
     if (password) updatedFields.password = password;
-
-    const updatedUser = await User.findByIdAndUpdate(id, updatedFields);
-    if (!updatedUser) {
-      return res.status(500).send("Error updating user");
-    }
+    const updatedUser = await User.findByIdAndUpdate(id, updatedFields, { new: true });
     res
       .status(200)
       .json({ message: "User updated successfully", user: updatedUser });
@@ -549,6 +644,7 @@ export const updateUser = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
 export const deleteUser = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -567,40 +663,39 @@ export const deleteUser = async (req, res, next) => {
     if (!deletedUser) {
       return res.status(500).send("Error deleting user");
     }
-    res
-      .status(200)
-      .json({ message: "User deleted successfully"});
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
+
 export const userOrders = async (req, res, next) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId);
     if (!user) return res.status(404).send("No Such Admin Found");
-    const {id} = req.query;
+    const { id } = req.query;
     if (!id || !isValidObjectId(id)) {
       return res.status(400).send("Invalid User ID");
     }
     const orders = await Order.find({
-      userId: id
-    }).sort({updatedAt:-1});
+      userId: id,
+    }).sort({ updatedAt: -1 });
     if (!orders) {
       return res.status(404).send("No Orders found");
     }
-    const formattedUserOrder = orders.map(async order => {
-      const foramattedItem = await getFormattedCartItems({cart:order})
+    const formattedUserOrder = orders.map(async (order) => {
+      const foramattedItem = await getFormattedCartItems({ cart: order });
       return {
         orderId: order._id,
         items: foramattedItem,
         totalPrice: order.totalPrice,
         status: order.status,
-        createdAt: order.createdAt
-      }
+        createdAt: order.createdAt,
+      };
     });
-    
+
     res.status(200).send(formattedUserOrder);
   } catch (error) {
     console.log(error.message);

@@ -12,6 +12,7 @@ import {
   getAllUsers,
   getPizzaDetails,
   getPizzas,
+  getUserWithNameOrEmail,
   imageUpload,
   inventory,
   liveOrders,
@@ -54,7 +55,9 @@ AdminRouter.get("/orders", verifyToken, liveOrders);
 AdminRouter.patch("/updateorder/:orderId", verifyToken, updateOrderStatus);
 AdminRouter.get("/completedorders", verifyToken, CompletedOrders);
 
+// Admin - User Routes
 AdminRouter.get("/users-list", verifyToken, getAllUsers);
+AdminRouter.get("/user/search", verifyToken, getUserWithNameOrEmail);
 AdminRouter.patch("/update-user", verifyToken, updateUser);
 AdminRouter.delete("/delete-user", verifyToken, deleteUser);
 AdminRouter.get("/user-order-details", verifyToken, OrderDetails);

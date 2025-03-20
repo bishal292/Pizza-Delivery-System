@@ -21,7 +21,7 @@ export const logIn = async (req, res, next) => {
       return res.status(400).send("Please provide a valid email");
 
     //Check if user exists in database.
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) return res.status(401).send("No User Exists with this email");
 
     const auth = await bcrypt.compare(password, user.password);
@@ -118,7 +118,7 @@ export const changePassword = async (req, res, next) => {
     if (!oldPassword || !newPassword)
       return res.status(400).send("Please provide old and new password");
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("+password");
 
     if (!user) return res.status(400).send("User not found");
 
@@ -209,7 +209,7 @@ export const resetpassword = async (req, res, next) => {
       return res
         .status(400)
         .send("Entered Email is not valid, Please provide a valid email");
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user)
       return res
         .status(400)

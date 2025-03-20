@@ -15,6 +15,7 @@ export const ADMIN_AUTH_CHANGE_PASS = `${AdminAuth}/changepassword`
 
 // ADMIN OTHER ROUTES
 export const ADMIN_DASHBOARD = `${baseRoute}/admin/dashboard`
+
 // Admin - Inventory Routes
 export const ADMIN_INVENTORY = `${baseRoute}/admin/inventory`
 export const ADMIN_ADD_PRODUCT = `${baseRoute}/admin/addproduct`
@@ -22,9 +23,11 @@ export const ADMIN_UPDATE_PRODUCT = `${baseRoute}/admin/updateproduct`  // PATCH
 export const ADMIN_DELETE_PRODUCT = `${baseRoute}/admin/deleteproduct`  // DELETE -> PRODUCT ID
 
 // Admin - User Routes
-export const ADMIN_GET_ALL_USERS = `${baseRoute}/admin/users`
-export const ADMIN_UPDATE_USER = `${baseRoute}/admin/updateuser`  // PATCH -> USER ID
-export const ADMIN_DELETE_USER = `${baseRoute}/admin/deleteuser`  // DELETE -> USER ID
+export const ADMIN_GET_ALL_USERS = `${baseRoute}/admin/users-list`
+export const ADMIN_SEARCH_USER = `${baseRoute}/admin/user/search`
+export const ADMIN_UPDATE_USER = `${baseRoute}/admin/update-user`  // PATCH -> USER ID
+export const ADMIN_DELETE_USER = `${baseRoute}/admin/delete-user`  // DELETE -> USER ID
+export const ADMIN_USER_ORDER_DETAILS = `${baseRoute}/admin/user-order-details`  // DELETE -> USER ID
 
 // Admin - Order Routes
 export const ADMIN_LIVE_ORDERS = `${baseRoute}/admin/orders`

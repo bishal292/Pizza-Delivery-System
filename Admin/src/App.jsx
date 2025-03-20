@@ -17,6 +17,7 @@ import AdminPizza from "./pages/AdminPages/AdminPizza";
 import PizzaDetails from "./pages/AdminPages/PizzaDetails";
 import AdminUsersList from "./pages/AdminPages/AdminUsersList";
 import AdminUpdateUser from "./pages/AdminPages/AdminUpdateUser";
+import SelectedUserCart from "./pages/AdminPages/SelectedUserCart";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
       { path: "users-list", element: <AdminUsersList /> },
       { path: "user/:id", element: <AdminUpdateUser /> },
       { path: "pizza/:id", element: <PizzaDetails /> },
+      {path:"cart/:cartId",element: <SelectedUserCart />}
     ],
   },
   {

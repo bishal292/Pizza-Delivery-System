@@ -15,6 +15,7 @@ const AdminInventory = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmationItemId, setConfirmationItemId] = useState(null);
   const [newItem, setNewItem] = useState({
     name: "",
     category: "",
@@ -105,6 +106,7 @@ const AdminInventory = () => {
     }
     // setInventory([...inventory, newItem]);
   };
+  
   const deleteItem = async (id) => {
     setIsSubmitting(true);
     try {
@@ -129,8 +131,18 @@ const AdminInventory = () => {
       }
     } finally {
       setIsSubmitting(false);
+      setConfirmationItemId(null);
     }
   };
+
+  const handleDeleteClick = (id) => {
+    setConfirmationItemId(id);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmationItemId(null);
+  };
+
   const updateItem = async (id) => {
     setIsSubmitting(true);
     try {
@@ -317,7 +329,7 @@ const AdminInventory = () => {
                         <button
                           disabled={isSubmitting}
                           className="bg-red-500 text-white px-4 py-2 rounded"
-                          onClick={() => deleteItem(item._id)}
+                          onClick={() => handleDeleteClick(item._id)}
                         >
                           <FaTrash />
                         </button>
@@ -328,6 +340,31 @@ const AdminInventory = () => {
               ))}
         </tbody>
       </table>
+      {/* Confirmation Overlay */}
+      {confirmationItemId && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p className="mb-6">Are you sure you want to delete this item?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                disabled={isSubmitting}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={handleCancelDelete}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isSubmitting}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+                onClick={() => deleteItem(confirmationItemId)}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {isPopupOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg w-1/2">

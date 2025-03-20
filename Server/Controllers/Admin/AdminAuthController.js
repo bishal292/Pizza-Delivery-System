@@ -21,7 +21,7 @@ export const logIn = async (req, res, next) => {
       return res.status(400).send("Please provide a valid email");
 
     //Check if user exists in database.
-    const user = await Admin.findOne({ email });
+    const user = await Admin.findOne({ email }).select("+password");
     // if (!user) return res.status(401).send("No Admin Exists with this email");
     if (!user) return res.status(401).send("Invalid Credentials.");
 
@@ -120,7 +120,7 @@ export const changePassword = async (req, res, next) => {
     if (!oldPassword || !newPassword)
       return res.status(400).send("Please provide old and new password");
 
-    const user = await Admin.findById(userId);
+    const user = await Admin.findById(userId).select("+password");
 
     if (!user) return res.status(400).send("User not found");
 
@@ -210,7 +210,7 @@ export const resetpassword = async (req, res, next) => {
          return res
            .status(400)
            .send("Entered Email is not valid, Please provide a valid email");
-       const user = await Admin.findOne({ email });
+       const user = await Admin.findOne({ email }).select("+password");
        if (!user)
          return res
            .status(400)

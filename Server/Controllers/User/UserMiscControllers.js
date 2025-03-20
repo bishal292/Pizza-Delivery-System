@@ -125,7 +125,7 @@ export const getCart = async (req, res, next) => {
 
     const formattedItems = await getFormattedCartItems({ cart });
     res.status(200).json({
-      _id: cart.__id,
+      _id: cart._id,
       user: cart.user,
       items: formattedItems,
       totalPrice: cart.totalPrice,
