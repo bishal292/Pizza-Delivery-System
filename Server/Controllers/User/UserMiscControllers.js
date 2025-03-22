@@ -3,11 +3,16 @@ import { Cart } from "../../db/models/CartModel.js";
 import { User } from "../../db/models/UserModel.js";
 import { Inventory } from "../../db/models/InventoryModel.js";
 import { isValidObjectId } from "mongoose";
-import { calculatePrice, getFormattedCartItems } from "../../utils/util-functions.js";
+import {
+  calculatePrice,
+  getFormattedCartItems,
+} from "../../utils/util-functions.js";
+import { instance } from "../../Services/RazorPay.js";
+import { Order } from "../../db/models/Orders.js";
 
 export const getPizzas = async (req, res, next) => {
   try {
-    const pizzas = await Pizza.find()
+    const pizzas = await Pizza.find({ status: "available" })
       .sort({ updatedAt: -1 })
       .populate("base sauce cheese toppings", "name price");
     if (!pizzas) {
@@ -53,7 +58,7 @@ export const addToCart = async (req, res, next) => {
     customizations.sauce = customizations.sauce || [];
     customizations.cheese = customizations.cheese || [];
     customizations.toppings = customizations.toppings || [];
-    
+
     // Sort customizations arrays
     customizations.sauce.sort();
     customizations.cheese.sort();
@@ -75,9 +80,9 @@ export const addToCart = async (req, res, next) => {
     // Check if the item already exists in the cart with the same customizations
     const existingItem = cart.items.find(
       (cartItem) =>
-        cartItem.pizza.toString() === pizzaId && JSON.stringify(cartItem.customizations) ===
-      JSON.stringify(customizations)
-
+        cartItem.pizza.toString() === pizzaId &&
+        JSON.stringify(cartItem.customizations) ===
+          JSON.stringify(customizations)
     );
 
     if (existingItem) {
@@ -104,9 +109,8 @@ export const addToCart = async (req, res, next) => {
     console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
-}
+};
 // Helper function to compare arrays regardless of order
-
 
 export const getCart = async (req, res, next) => {
   try {
@@ -141,10 +145,10 @@ export const getCart = async (req, res, next) => {
 export const removeFromCart = async (req, res, next) => {
   try {
     const userId = req.userId;
-    const { id:pizzaId, idx:index, csm:customizations } = req.query;
+    const { id: pizzaId, idx: index, csm: customizations } = req.query;
     console.log(pizzaId, index, customizations);
 
-    const cart = await Cart.findOne({ user:userId });
+    const cart = await Cart.findOne({ user: userId });
     if (!cart) {
       return res.status(404).send("Cart not found");
     }
@@ -195,10 +199,9 @@ export const clearCart = async (req, res, next) => {
       return res.status(404).send("Cart not found");
     }
 
-    cart.items = [];
-    await cart.save();
+    await Cart.findOneAndDelete({ user: userId });
 
-    res.status(200).json({ message: "Cart cleared", cart });
+    res.status(200).json({ message: "Cart cleared" });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
@@ -207,10 +210,22 @@ export const clearCart = async (req, res, next) => {
 
 export const getOptions = async (req, res, next) => {
   try {
-    const bases = await Inventory.find({ category: "base" ,status:"available" }, "name price");
-    const sauces = await Inventory.find({ category: "sauce" ,status:"available" }, "name price");
-    const cheeses = await Inventory.find({ category: "cheese" ,status:"available" }, "name price");
-    const toppings = await Inventory.find({ category: "topping" ,status:"available" }, "name price");
+    const bases = await Inventory.find(
+      { category: "base", status: "available" },
+      "name price"
+    );
+    const sauces = await Inventory.find(
+      { category: "sauce", status: "available" },
+      "name price"
+    );
+    const cheeses = await Inventory.find(
+      { category: "cheese", status: "available" },
+      "name price"
+    );
+    const toppings = await Inventory.find(
+      { category: "topping", status: "available" },
+      "name price"
+    );
 
     res.status(200).json({ bases, sauces, cheeses, toppings });
   } catch (error) {
@@ -219,7 +234,204 @@ export const getOptions = async (req, res, next) => {
   }
 };
 
-export const placeOrder = async (req, res, next) => {};
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- Order Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+*/
 
-export const getOrders = async (req, res, next) => {};
-export const getOrder = async (req, res, next) => {};
+export const placeOrder = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    const tableNo = parseInt(req.body.tableNo);
+    if (!tableNo) {
+      return res.status(400).send("Table number is required");
+    }
+
+    const cart = await Cart.findOne({ user: userId });
+    if (!cart || cart.items.length < 1) {
+      return res.status(200).json({ message: "Cart is empty", items: [] });
+    }
+
+    const outOfStockItems = [];
+
+    // Check stock for each item in the cart
+    for (const item of cart.items) {
+      const qty = item.quantity;
+
+      const pizza = await Pizza.findById(item.pizza).populate(
+        "base sauce cheese toppings",
+        "name price stock status"
+      );
+      if (!pizza || pizza.status === "unavailable") {
+        outOfStockItems.push({
+          name: pizza?.name || "Unknown Pizza",
+          reason: "Pizza unavailable",
+        });
+        continue;
+      }
+
+      // Check stock for base
+      if (item.customizations.base) {
+        const base = await Inventory.findById(item.customizations.base);
+        if (!base || base.stock < qty) {
+          outOfStockItems.push({
+            name: base?.name || "Unknown Base",
+            reason: "Base out of stock",
+          });
+        }
+      } else if (pizza.base.stock < qty) {
+        outOfStockItems.push({
+          name: pizza.base.name,
+          reason: "Base out of stock",
+        });
+      }
+
+      // Check stock for sauce
+      for (const sauceId of item.customizations.sauce || []) {
+        const sauce = await Inventory.findById(sauceId);
+        if (!sauce || sauce.stock < qty * 5) {
+          outOfStockItems.push({
+            name: sauce?.name || "Unknown Sauce",
+            reason: "Sauce out of stock",
+          });
+        }
+      }
+
+      // Check stock for cheese
+      for (const cheeseId of item.customizations.cheese || []) {
+        const cheese = await Inventory.findById(cheeseId);
+        if (!cheese || cheese.stock < qty * 5) {
+          outOfStockItems.push({
+            name: cheese?.name || "Unknown Cheese",
+            reason: "Cheese out of stock",
+          });
+        }
+      }
+
+      // Check stock for toppings
+      for (const toppingId of item.customizations.toppings || []) {
+        const topping = await Inventory.findById(toppingId);
+        if (!topping || topping.stock < qty * 10) {
+          outOfStockItems.push({
+            name: topping?.name || "Unknown Topping",
+            reason: "Topping out of stock",
+          });
+        }
+      }
+    }
+    if(outOfStockItems.length > 0){
+      return res.status(400).json({message: "Some items are out of stock Please remove them or wait for item to be available in Stock.", outOfStockItems});
+    }
+    const options = {
+      amount: Number(cart?.totalPrice * 100) || 0,
+      currency: "INR",
+    };
+    const order_Razor = await instance.orders.create(options);
+    if (!order_Razor) {
+      return res.status(500).send("Failed to create order Payment");
+    }
+
+    const order = Order.create({
+      userId,
+      items: cart.items,
+      totalPrice: cart.totalPrice,
+      orderId: order_Razor.id, // Replace with actual RazorPay order ID if needed
+      tableNo,
+    });
+
+    if(!order){
+      return res.status(500).json({message: "Failed to place order"});
+    }
+
+    const isCartClear = await Cart.findOneAndDelete({ user: userId });
+    if (!isCartClear) {
+      return res.status(500).send("Failed to clear cart but created Order");
+    }
+
+    res.status(201).json({
+      _id: order._id,
+      message: "Order placed successfully",
+      order: order_Razor,
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const getOrders = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const orders = await Order.find({ userId }).populate("items.pizza").sort({ updatedAt: -1 });
+    if (!orders || orders.length === 0) {
+      return res.status(404).send("No orders found");
+    }
+
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      totalPrice: order.totalPrice,
+      totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      image: order.items[0]?.pizza?.image || null,
+      status: order.status,
+      tableNo: order.tableNo,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    }));
+
+    res.status(200).json(formattedOrders);
+    res.status(200).send(orders);
+  } catch (error) {}
+};
+
+export const getOrderDetails = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    const { id: orderId } = req.query;
+
+    if (!orderId || !isValidObjectId(orderId)) {
+      return res.status(400).send("Valid order ID is required");
+    }
+
+    const order = await Order.findById(orderId).populate("items.pizza");
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    if (order.userId.toString() !== userId) {
+      return res.status(403).send("You are not authorized to view this order");
+    }
+
+    // Format the order items
+    const formattedItems = await getFormattedCartItems({ cart: order });
+    const formattedOrder = {
+      _id: order._id,
+      userId: order.userId,
+      items: formattedItems,
+      totalPrice: order.totalPrice,
+      status: order.status,
+      tableNo: order.tableNo,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    };
+
+    res.status(200).json(formattedOrder);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};

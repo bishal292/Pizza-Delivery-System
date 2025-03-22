@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from "react";
 import useCartStore from "@/Store/cartStore";
-import { HOST, USER_GET_CART, USER_REMOVE_FROM_CART, USER_CLEAR_CART } from "@/utils/constant";
+import {
+  HOST,
+  USER_GET_CART,
+  USER_REMOVE_FROM_CART,
+  USER_CLEAR_CART,
+  USER_PLACE_ORDER,
+  USER_PAYMENT_VERIFICATION,
+} from "@/utils/constant";
 import { toast } from "sonner";
 import { apiClient } from "@/utils/api-client";
 import { useSocket } from "@/Context/SocketContext";
+import Razorpay from "razorpay";
+import { useAppStore } from "@/Store/store";
 
 const UserCart = () => {
+  const { userInfo } = useAppStore();
   const cart = useCartStore((state) => state.cart);
   const setCart = useCartStore((state) => state.setCart);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
@@ -17,6 +27,10 @@ const UserCart = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { socket, isConnected } = useSocket();
+  const [tableNumber, setTableNumber] = useState(null);
+  const [isTableDialogOpen, setIsTableDialogOpen] = useState(false);
+  const [enteredTableNumber, setEnteredTableNumber] = useState("");
+  const [genOrderId, setGenOrderId] = useState("");
 
   useEffect(() => {
     if (Array.isArray(cart)) {
@@ -25,7 +39,6 @@ const UserCart = () => {
       }, 0);
       setTotalPrice(price);
     }
-    console.log("Cart changed", cart);
   }, [cart]);
 
   useEffect(() => {
@@ -34,17 +47,14 @@ const UserCart = () => {
         const response = await apiClient.get(USER_GET_CART, {
           withCredentials: true,
         });
-        console.log(response);
         if (response.status === 200) {
           setCart(response.data.items);
         }
       } catch (error) {
         console.error("Error fetching cart", error);
-        toast.error(error.response?.data || error.response?.message);
+        toast.error(error.response?.data?.message || error.response?.message || "Failed to fetch cart.");
       } finally {
         setIsLoading(false);
-        console.log("Cart fetched successfully");
-        console.log(cart);
       }
     };
 
@@ -54,7 +64,6 @@ const UserCart = () => {
   const removeItem = async (pizzaId, index) => {
     try {
       setIsSubmitting(true);
-      console.log("Removing item from cart", pizzaId, index);
       const response = await apiClient.delete(
         `${USER_REMOVE_FROM_CART}?id=${pizzaId}&idx=${index}`,
         {
@@ -67,17 +76,14 @@ const UserCart = () => {
       }
     } catch (error) {
       console.error("Error removing item from cart", error);
-      toast.error(error.response?.data || error.response?.message);
+      toast.error(error.response?.data?.message || error.response?.message || "Failed to remove item.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleIncreaseQuantity = (pizzaId, index) => {
-    console.log("Increase Quantity", pizzaId, index);
-    console.log(socket);
     if (isConnected) {
-      console.log("Emitting increase-quantity event", pizzaId, index);
       socket.emit("increase-quantity", { pizzaId, index }, (response) => {
         if (response.status === "ok") {
           const { newQuantity } = response.data;
@@ -91,7 +97,6 @@ const UserCart = () => {
 
   const handleDecreaseQuantity = (pizzaId, index) => {
     if (isConnected) {
-      console.log("Emitting Decrease-quantity", pizzaId, index);
       socket.emit("decrease-quantity", { pizzaId, index }, (response) => {
         if (response.status === "ok") {
           const { newQuantity } = response.data;
@@ -115,11 +120,109 @@ const UserCart = () => {
       }
     } catch (error) {
       console.error("Error clearing cart", error);
-      toast.error(error.response?.data || error.response?.message);
+      toast.error(error.response?.data?.message || error.response?.message || "Failed to clear cart.");
     } finally {
       setIsSubmitting(false);
       setIsDialogOpen(false);
     }
+  };
+
+  async function paymentVerification(response) {
+    try {
+      
+      const verificationResponse = await apiClient.post(
+        USER_PAYMENT_VERIFICATION,
+        {
+          ordId: genOrderId, // Explicitly send genOrderId as ordId
+          paymentId: response.razorpay_payment_id,
+          orderId: response.razorpay_order_id,
+          signature: response.razorpay_signature,
+        },
+        { withCredentials: true }
+      );
+
+      console.log("Payment -verification res : ", verificationResponse);
+      if (verificationResponse.status === 200) {
+        toast.success("Payment verified and order placed successfully!");
+      }
+    } catch (error) {
+      console.error("Payment verification failed", error);
+      toast.error(error.response?.data?.message || error.response?.message || "Payment verification failed.");
+    }
+  }
+
+  const handlePlaceOrder = async () => {
+    if (!tableNumber) {
+      setIsTableDialogOpen(true);
+      return;
+    }
+
+    const razorpayKey = import.meta.env.VITE_RAZORPAY_API_KEY;
+    if (!razorpayKey) {
+      toast.error("Razorpay API key is missing. Please contact support.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await apiClient.post(
+        USER_PLACE_ORDER,
+        { tableNo: tableNumber },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log("Order Place Response : ", response);
+
+      if (response.status === 201) {
+        const order = response.data.order;
+        clearCart();
+        setGenOrderId(response.data._id);
+        const options = {
+          key_id: razorpayKey,
+          amount: order?.amount || 0,
+          currency: order.currency,
+          name: "Pizzeria",
+          description: "Only place to fulfill your hunger for pizza.",
+          order_id: order.id,
+          handler: paymentVerification,
+          prefill: {
+            name: userInfo?.name,
+            email: userInfo?.email,
+            contact: "9999999999",
+          },
+          theme: {
+            color: "#F37254",
+          },
+        };
+
+        if (typeof window.Razorpay !== "undefined") {
+          const razorpayInstance = new window.Razorpay(options);
+          razorpayInstance.open();
+        } else {
+          console.error("Razorpay SDK not loaded properly.");
+        }
+
+        toast.success("Order placed successfully");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response?.data || error.response?.message || error.message
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmTableNumber = () => {
+    if (!enteredTableNumber || isNaN(enteredTableNumber)) {
+      toast.error("Invalid table number. Please try again.");
+      return;
+    }
+    setTableNumber(enteredTableNumber);
+    setIsTableDialogOpen(false);
+    handlePlaceOrder();
   };
 
   if (isLoading) {
@@ -195,11 +298,11 @@ const UserCart = () => {
                         <li>Sauce: {item.customizations.sauce.join(", ")}</li>
                       )}
                       {item.customizations.cheese.length > 0 && (
-                        <li>Cheese: {item.customizations.cheese.join(", ")}
-                        </li>
+                        <li>Cheese: {item.customizations.cheese.join(", ")}</li>
                       )}
                       {item.customizations.toppings.length > 0 && (
-                        <li>Toppings: {item.customizations.toppings.join(", ")}
+                        <li>
+                          Toppings: {item.customizations.toppings.join(", ")}
                         </li>
                       )}
                     </ul>
@@ -210,7 +313,9 @@ const UserCart = () => {
                     className={`bg-blue-500 text-white px-4 py-1 rounded ${
                       item.quantity === 1 ? "opacity-50 cursor-not-allowed" : ""
                     }`}
-                    onClick={() => handleDecreaseQuantity(item.pizza._id, index)}
+                    onClick={() =>
+                      handleDecreaseQuantity(item.pizza._id, index)
+                    }
                   >
                     -
                   </button>
@@ -218,7 +323,9 @@ const UserCart = () => {
                     className={`bg-blue-500 text-white px-4 py-1 rounded ${
                       item.quantity >= 10 ? "opacity-50 cursor-not-allowed" : ""
                     }`}
-                    onClick={() => handleIncreaseQuantity(item.pizza._id, index)}
+                    onClick={() =>
+                      handleIncreaseQuantity(item.pizza._id, index)
+                    }
                   >
                     +
                   </button>
@@ -251,7 +358,9 @@ const UserCart = () => {
               {isDialogOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                   <div className="bg-white p-6 rounded shadow-lg">
-                    <h2 className="text-xl font-bold mb-4">Confirm Clear Cart</h2>
+                    <h2 className="text-xl font-bold mb-4">
+                      Confirm Clear Cart
+                    </h2>
                     <p>Are you sure you want to clear the cart?</p>
                     <div className="mt-4 flex justify-end space-x-4">
                       <button
@@ -273,9 +382,41 @@ const UserCart = () => {
               )}
             </>
           )}
-          <button className="bg-green-500 text-white px-4 py-2 rounded mt-2">
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded mt-2"
+            onClick={handlePlaceOrder}
+            disabled={isSubmitting}
+          >
             Place Order
           </button>
+        </div>
+      )}
+      {isTableDialogOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg">
+            <h2 className="text-xl font-bold mb-4">Enter Table Number</h2>
+            <input
+              type="text"
+              className="border p-2 rounded w-full"
+              placeholder="Enter your table number"
+              value={enteredTableNumber}
+              onChange={(e) => setEnteredTableNumber(e.target.value)}
+            />
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={() => setIsTableDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded"
+                onClick={confirmTableNumber}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

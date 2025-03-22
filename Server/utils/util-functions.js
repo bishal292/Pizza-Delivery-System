@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 import multer from "multer";
 import fs from "fs";
 import { Inventory } from "../db/models/InventoryModel.js";
+import { Admin } from "../db/models/AdminModel.js";
 
 // maxAge for token expiration time in seconds(3 days).
 const maxAge = 3 * 24 * 60 * 60;
@@ -64,6 +65,17 @@ export function sendEmail(option) {
     };
 
     transporter.sendMail(emailOptions);
+}
+
+export const sendEmailToAdmins = async (option) => {
+  const admins = await Admin.find({}, "email");
+  const emailOptions = {
+    from: process.env.SYSTEM_EMAIL,
+    to: admins.map((admin) => admin.email).join(","),
+    subject: option.subject,
+    text: option.message,
+  };
+  sendEmail(emailOptions);
 }
 
 /**

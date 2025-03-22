@@ -7,7 +7,7 @@ import AdminRouter from './Routes/Admin/AdminRoutes.js';
 import UserRouter from './Routes/User/UserRoutes.js';
 import { getUserInfo, verifyToken } from './Middlewares/AuthMiddleware.js';
 import http from 'http';
-import setupSocket from './utils/Socket.js';
+import {setupSocket} from './utils/Socket.js';
 
 dotenv.config();
 
@@ -16,6 +16,7 @@ const port = process.env.PORT || 3000;
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
@@ -40,12 +41,6 @@ app.use(cors({
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
-
-// Middleware to get logged user info along with its role(Admin | user).
-// app.use("*",(req, res, next) => {
-//     `console`.log(req.method, req.path);
-//     next();
-// });
 
 app.get("/api/v1/auth/get-user-info",verifyToken,getUserInfo);
 
