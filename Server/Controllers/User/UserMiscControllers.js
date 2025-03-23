@@ -168,9 +168,8 @@ export const getCart = async (req, res, next) => {
         model: Inventory,
         select: "name -_id",
       });
-      
-      res.status(200).json(cart);
 
+    res.status(200).json(cart);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -295,73 +294,69 @@ export const placeOrder = async (req, res, next) => {
 
     const outOfStockItems = [];
 
-    // Check stock for each item in the cart
+    // Check stock for each item in the cart and store information.
+    const stockCounter = {};
+
     for (const item of cart.items) {
       const qty = item.quantity;
-
+    
       const pizza = await Pizza.findById(item.pizza).populate(
-        "base sauce cheese toppings",
+        "base",
         "name price stock status"
       );
+    
       if (!pizza || pizza.status === "unavailable") {
-        outOfStockItems.push({
-          name: pizza?.name || "Unknown Pizza",
-          reason: "Pizza unavailable",
-        });
+        outOfStockItems.push({ name: pizza?.name || "Unknown Pizza", reason: "Pizza unavailable" });
         continue;
       }
-
-      // Check stock for base
-      if (item.customizations.base) {
-        const base = await Inventory.findById(item.customizations.base);
-        if (!base || base.stock < qty) {
-          outOfStockItems.push({
-            name: base?.name || "Unknown Base",
-            reason: "Base out of stock",
-          });
-        }
-      } else if (pizza.base.stock < qty) {
-        outOfStockItems.push({
-          name: pizza.base.name,
-          reason: "Base out of stock",
-        });
+    
+      // ✅ Count base stock
+      const baseId = item.customizations.base || pizza.base._id.toString();
+      stockCounter[baseId] = (stockCounter[baseId] || 0) + qty;
+    
+      // ✅ Count sauce stock
+      const allSauces = [...(pizza.sauce || []), ...(item.customizations.sauce || [])];
+      for (const sauceId of allSauces) {
+        stockCounter[sauceId] = (stockCounter[sauceId] || 0) + qty * 5;
       }
-
-      // Check stock for sauce
-      for (const sauceId of item.customizations.sauce || []) {
-        const sauce = await Inventory.findById(sauceId);
-        if (!sauce || sauce.stock < qty * 5) {
-          outOfStockItems.push({
-            name: sauce?.name || "Unknown Sauce",
-            reason: "Sauce out of stock",
-          });
-        }
+    
+      // ✅ Count cheese stock
+      const allCheeses = [...(pizza.cheese || []), ...(item.customizations.cheese || [])];
+      for (const cheeseId of allCheeses) {
+        stockCounter[cheeseId] = (stockCounter[cheeseId] || 0) + qty * 5;
       }
-
-      // Check stock for cheese
-      for (const cheeseId of item.customizations.cheese || []) {
-        const cheese = await Inventory.findById(cheeseId);
-        if (!cheese || cheese.stock < qty * 5) {
-          outOfStockItems.push({
-            name: cheese?.name || "Unknown Cheese",
-            reason: "Cheese out of stock",
-          });
-        }
-      }
-
-      // Check stock for toppings
-      for (const toppingId of item.customizations.toppings || []) {
-        const topping = await Inventory.findById(toppingId);
-        if (!topping || topping.stock < qty * 10) {
-          outOfStockItems.push({
-            name: topping?.name || "Unknown Topping",
-            reason: "Topping out of stock",
-          });
-        }
+    
+      // ✅ Count topping stock
+      const allToppings = [...(pizza.toppings || []), ...(item.customizations.toppings || [])];
+      for (const toppingId of allToppings) {
+        stockCounter[toppingId] = (stockCounter[toppingId] || 0) + qty * 10;
       }
     }
-    if(outOfStockItems.length > 0){
-      return res.status(400).json({message: "Some items are out of stock Please remove them or wait for item to be available in Stock.", outOfStockItems});
+    
+    // ✅ Batch check inventory stock
+    const ingredientIds = Object.keys(stockCounter);
+    const inventoryItems = await Inventory.find({ _id: { $in: ingredientIds } });
+    
+    for (const ingredient of inventoryItems) {
+      const totalRequired = stockCounter[ingredient._id.toString()];
+      
+      if (ingredient.stock < totalRequired) {
+        outOfStockItems.push({
+          name: ingredient.name,
+          category: ingredient.category,
+          reason: `Out of stock. Required: ${totalRequired}, Available: ${ingredient.stock}`,
+        });
+      }
+    }
+
+    if (outOfStockItems.length > 0) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Some items are out of stock Please remove them or wait for item to be available in Stock.",
+          outOfStockItems,
+        });
     }
     const options = {
       amount: Number(cart?.totalPrice * 100) || 0,
@@ -382,8 +377,8 @@ export const placeOrder = async (req, res, next) => {
     });
     await order.save();
 
-    if(!order){
-      return res.status(500).json({message: "Failed to place order"});
+    if (!order) {
+      return res.status(500).json({ message: "Failed to place order" });
     }
 
     // const isCartClear = await Cart.findOneAndDelete({ user: userId });
@@ -410,12 +405,14 @@ export const getOrders = async (req, res, next) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
-    const orders = await Order.find({ userId }).populate("items.pizza").sort({ updatedAt: -1 });
+    const orders = await Order.find({ userId })
+      .populate("items.pizza")
+      .sort({ updatedAt: -1 });
     if (!orders || orders.length === 0) {
       return res.status(204).send("No orders found");
     }
 
-    const formattedOrders = orders.map(order => ({
+    const formattedOrders = orders.map((order) => ({
       _id: order._id,
       totalPrice: order.totalPrice,
       totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),

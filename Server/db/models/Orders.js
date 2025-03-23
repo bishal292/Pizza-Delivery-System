@@ -48,7 +48,7 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.post("save", async function (doc, next) {
-  try {
+  try { 
     
     const bulkOps = [];
 

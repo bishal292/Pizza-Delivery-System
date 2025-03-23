@@ -17,7 +17,7 @@ const inventorySchema = new mongoose.Schema(
       required: true,
     },
     price: { type: Number, required: true },
-    stock: { type: Number, required: true, min: 0 },
+    stock: { type: Number, required: true, min: [0, "Stock cannot be below 0"] },
     threshold: { type: Number, required: true },
     status: {
       type: String,
@@ -30,7 +30,7 @@ const inventorySchema = new mongoose.Schema(
 
 // Whenever the stock is updated, the status will be updated as well
 inventorySchema.pre("save", function (next) {
-  this.status = this.stock == 0 ? "out of stock" : "available";
+  this.status = this.stock <= 0 ? "out of stock" : "available";
   next();
 });
 
@@ -45,7 +45,7 @@ inventorySchema.post("save", async function (doc, next) {
       // Find all pizzas that use this inventory item
       const pizzasToUpdate = await Pizza.find({
         $or: [
-          { base: doc._id },
+          { base: doc._id }, // Ensure only the _id is used
           { sauce: doc._id },
           { cheese: doc._id },
           { toppings: doc._id },

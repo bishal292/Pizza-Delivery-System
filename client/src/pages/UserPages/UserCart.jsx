@@ -47,7 +47,7 @@ const UserCart = () => {
         const response = await apiClient.get(USER_GET_CART, {
           withCredentials: true,
         });
-        console.log("Cart Response : ", response.data.items);
+        
         if (response.status === 200) {
           setCart(response.data.items);
         }
@@ -273,7 +273,7 @@ const UserCart = () => {
                   <b>Sauce:</b>{" "}
                   {item.pizza.sauce.length > 0
                     ? item.pizza.sauce.map((s) => s.name).join(", ")
-                    : <t className="text-gray-400">dfds</t>}
+                    : <p className="text-gray-400">dfds</p>}
                 </p>
                 <p>
                   <b>Cheese:</b>{" "}
