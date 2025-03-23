@@ -115,27 +115,62 @@ export const addToCart = async (req, res, next) => {
 export const getCart = async (req, res, next) => {
   try {
     const userId = req.userId;
-    const user = await User.findById(userId);
-    if (!user) {
+    const userFound = await User.findById(userId);
+    if (!userFound) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Fetch cart and populate pizza details along with customizations
-    const cart = await Cart.findOne({ user: userId }).populate("items.pizza");
+    // const cart = await Cart.findOne({ user: userId })
 
-    if (!cart) {
-      return res.status(200).json({ message: "Cart is empty", items: [] });
-    }
+    // if (!cart) {
+    //   return res.status(200).json({ message: "Cart is empty", items: [] });
+    // }
 
-    const formattedItems = await getFormattedCartItems({ cart });
-    res.status(200).json({
-      _id: cart._id,
-      user: cart.user,
-      items: formattedItems,
-      totalPrice: cart.totalPrice,
-      createdAt: cart.createdAt,
-      updatedAt: cart.updatedAt,
-    });
+    // const formattedItems = await getFormattedCartItems({ cart });
+    // res.status(200).json({
+    //   _id: cart._id,
+    //   user: cart.user,
+    //   items: formattedItems,
+    //   totalPrice: cart.totalPrice,
+    //   createdAt: cart.createdAt,
+    //   updatedAt: cart.updatedAt,
+    // });
+
+    const cart = await Cart.findOne({ user: userId })
+      .populate({
+        path: "items.pizza",
+        model: Pizza,
+        populate: [
+          { path: "base", model: Inventory, select: "name -_id" },
+          { path: "sauce", model: Inventory, select: "name -_id" },
+          { path: "cheese", model: Inventory, select: "name -_id" },
+          { path: "toppings", model: Inventory, select: "name -_id" },
+        ],
+      })
+      .populate({
+        path: "items.customizations.base",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.sauce",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.cheese",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.toppings",
+        model: Inventory,
+        select: "name -_id",
+      });
+      
+      res.status(200).json(cart);
+
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -332,32 +367,35 @@ export const placeOrder = async (req, res, next) => {
       amount: Number(cart?.totalPrice * 100) || 0,
       currency: "INR",
     };
-    const order_Razor = await instance.orders.create(options);
-    if (!order_Razor) {
-      return res.status(500).send("Failed to create order Payment");
-    }
+    // const order_Razor = await instance.orders.create(options);
+    // if (!order_Razor) {
+    //   return res.status(500).send("Failed to create order Payment");
+    // }
 
-    const order = Order.create({
+    const order = new Order({
       userId,
       items: cart.items,
       totalPrice: cart.totalPrice,
-      orderId: order_Razor.id, // Replace with actual RazorPay order ID if needed
+      // orderId: order_Razor.id, // Replace with actual RazorPay order ID if needed
+      orderId: "Demo_order-id", // Replace with actual RazorPay order ID if needed
       tableNo,
     });
+    await order.save();
 
     if(!order){
       return res.status(500).json({message: "Failed to place order"});
     }
 
-    const isCartClear = await Cart.findOneAndDelete({ user: userId });
-    if (!isCartClear) {
-      return res.status(500).send("Failed to clear cart but created Order");
-    }
+    // const isCartClear = await Cart.findOneAndDelete({ user: userId });
+    // if (!isCartClear) {
+    //   return res.status(500).send("Failed to clear cart but created Order");
+    // }
 
     res.status(201).json({
       _id: order._id,
       message: "Order placed successfully",
-      order: order_Razor,
+      // order: order_Razor,
+      order,
     });
   } catch (error) {
     console.error(error.message);
@@ -374,7 +412,7 @@ export const getOrders = async (req, res, next) => {
     }
     const orders = await Order.find({ userId }).populate("items.pizza").sort({ updatedAt: -1 });
     if (!orders || orders.length === 0) {
-      return res.status(404).send("No orders found");
+      return res.status(204).send("No orders found");
     }
 
     const formattedOrders = orders.map(order => ({

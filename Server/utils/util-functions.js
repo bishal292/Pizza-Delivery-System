@@ -7,6 +7,7 @@ import multer from "multer";
 import fs from "fs";
 import { Inventory } from "../db/models/InventoryModel.js";
 import { Admin } from "../db/models/AdminModel.js";
+import { Pizza } from "../db/models/PizzaModels.js";
 
 // maxAge for token expiration time in seconds(3 days).
 const maxAge = 3 * 24 * 60 * 60;
@@ -58,13 +59,13 @@ export function sendEmail(option) {
   });
 
   const emailOptions = {
-    from:`Pizzeria Support <${process.env.SYSTEM_EMAIL}>`,
+    from: `Pizzeria Support <${process.env.SYSTEM_EMAIL}>`,
     to: option.email,
     subject: option.subject,
     text: option.message,
-    };
+  };
 
-    transporter.sendMail(emailOptions);
+  transporter.sendMail(emailOptions);
 }
 
 export const sendEmailToAdmins = async (option) => {
@@ -76,29 +77,28 @@ export const sendEmailToAdmins = async (option) => {
     text: option.message,
   };
   sendEmail(emailOptions);
-}
+};
 
 /**
  * Function to setup storage directory for image in the server.
  */
 const storage = multer.diskStorage({
-    destination: function (_, __, cb) {
-        const uploadDir = 'uploads/';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: function (_, file, cb) {
-        cb(null, `${Date.now()}-${file.originalname}`);
+  destination: function (_, __, cb) {
+    const uploadDir = "uploads/";
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
+    cb(null, uploadDir);
+  },
+  filename: function (_, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
 });
 
 /**
  * Function to upload image to a defined storage directory in the server.
  */
 export const upload = multer({ storage: storage });
-
 
 /**
  * Function to Calculate price of customized pizza on base of customizations.
@@ -124,29 +124,50 @@ export const calculatePrice = async (pizza, customizations) => {
   return price;
 };
 
-
 /**
  * Function to get formatted and Populated cart items.This function will work for art Models as well as for Order Models.
- * @param {cart} Object containing cart items's array. 
+ * @param {cart} Object containing cart items's array.
  * @returns {Array} Returns formatted and Populate cart items.
  */
-export async function getFormattedCartItems({cart}){
-      // Collect all customization IDs in a single query
+export async function getFormattedCartItems({ cart }) {
+  // cart.items = await Promise.all(
+  //   cart.items.map(async (item) => {
+  //     const { pizza, customizations } = item;
+  //     const popPizza = await Pizza.findById(pizza)
+  //       .populate("base sauce cheese toppings", "name")
+  //       .lean();
+  //     return {
+  //       pizza: popPizza,
+  //       quantity: item.quantity,
+  //       price: item.price,
+  //       finalPrice: item.finalPrice,
+  //       customizations: customizations
+  //     };
+  //   })
+  // );
+
+  const origBaseIds = [];
+  const origSauceIds = [];
+  const origCheeseIds = [];
+  const origToppingIds = [];
   const baseIds = [];
   const sauceIds = [];
   const cheeseIds = [];
   const toppingIds = [];
   cart.items.forEach((item) => {
+    origBaseIds.push(item.pizza.base);
+    if(item.pizza.sauce) origSauceIds.push(...item.pizza.sauce);
+    if(item.pizza.cheese) origCheeseIds.push(...item.pizza.cheese);
+    if(item.pizza.toppings) origToppingIds.push(...item.pizza.toppings);
     if (item.customizations.base) baseIds.push(item.customizations.base);
-    if (item.customizations.sauce)
-      sauceIds.push(...item.customizations.sauce);
+    if (item.customizations.sauce) sauceIds.push(...item.customizations.sauce);
     if (item.customizations.cheese)
       cheeseIds.push(...item.customizations.cheese);
     if (item.customizations.toppings)
       toppingIds.push(...item.customizations.toppings);
   });
   // Fetch all inventory items at once to reduce DB queries
-  const [baseMap, sauceMap, cheeseMap, toppingMap] = await Promise.all([
+  const [ baseMap, sauceMap, cheeseMap, toppingMap] = await Promise.all([
     Inventory.find({ _id: { $in: baseIds } }, "name price").then((items) =>
       items.reduce((acc, item) => ({ ...acc, [item._id]: item }), {})
     ),
@@ -167,13 +188,10 @@ export async function getFormattedCartItems({cart}){
     price: item.price,
     finalPrice: item.finalPrice,
     customizations: {
-      base: item.customizations.base
-        ? baseMap[item.customizations.base]
-        : null,
+      base: item.customizations.base ? baseMap[item.customizations.base] : null,
       sauce:
-        item.customizations.sauce
-          ?.map((id) => sauceMap[id])
-          .filter(Boolean) || [],
+        item.customizations.sauce?.map((id) => sauceMap[id]).filter(Boolean) ||
+        [],
       cheese:
         item.customizations.cheese
           ?.map((id) => cheeseMap[id])

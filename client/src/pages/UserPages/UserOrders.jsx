@@ -21,11 +21,11 @@ const UserOrders = () => {
         const response = await apiClient.get(USER_GET_ORDERS, {
           withCredentials: true,
         });
-
+        console.log(response);
         if (response.status === 200) {
           setOrders(response.data);
-        } else {
-          setError("Failed to fetch orders.");
+        }else{
+          setError(response?.data?.message || response?.data);
         }
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -37,6 +37,44 @@ const UserOrders = () => {
 
     fetchOrders();
   }, []);
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const response = await apiClient.post(`/cancel-order/${orderId}`, {}, { withCredentials: true });
+      if (response.status === 200) {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, status: "cancelled" } : order
+          )
+        );
+        alert("Order cancelled successfully.");
+      } else {
+        alert("Failed to cancel the order.");
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      alert("An error occurred while cancelling the order.");
+    }
+  };
+
+  const handleCompletePayment = async (orderId) => {
+    try {
+      const response = await apiClient.post(`/complete-payment/${orderId}`, {}, { withCredentials: true });
+      if (response.status === 200) {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, status: "placed" } : order
+          )
+        );
+        alert("Payment completed successfully.");
+      } else {
+        alert("Failed to complete the payment.");
+      }
+    } catch (error) {
+      console.error("Error completing payment:", error);
+      alert("An error occurred while completing the payment.");
+    }
+  };
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -138,10 +176,26 @@ const UserOrders = () => {
                     </p>
                   </div>
 
-                  <div className="flex justify-end mt-4">
+                  <div className="flex justify-end mt-4 space-x-2">
                     <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
                       View Details
                     </button>
+                    {(order.status === "pending" || order.status === "placed") && (
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    {order.status === "pending" && (
+                      <button
+                        onClick={() => handleCompletePayment(order._id)}
+                        className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
+                      >
+                        Complete Payment
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

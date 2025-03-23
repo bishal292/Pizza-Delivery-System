@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { apiClient } from "@/utils/api-client";
 import { toast } from "sonner";
 import { ADMIN_UPDATE_PIZZA, ADMIN_UPLOAD_PIZZA_IMAGE } from "@/utils/constant";
 import { Pizza } from "lucide-react";
+import { apiClient } from "@/utils/api-client";
 
 const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
   const [updatedPizza, setUpdatedPizza] = useState({

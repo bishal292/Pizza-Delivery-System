@@ -49,11 +49,7 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.post("save", async function (doc, next) {
   try {
-
-    if (!doc.isNew) {
-      return next();
-    }
-
+    
     const bulkOps = [];
 
     // Prepare batch stock reduction operations

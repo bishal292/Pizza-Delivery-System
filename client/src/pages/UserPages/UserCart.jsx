@@ -47,6 +47,7 @@ const UserCart = () => {
         const response = await apiClient.get(USER_GET_CART, {
           withCredentials: true,
         });
+        console.log("Cart Response : ", response.data.items);
         if (response.status === 200) {
           setCart(response.data.items);
         }
@@ -181,7 +182,7 @@ const UserCart = () => {
         const options = {
           key_id: razorpayKey,
           amount: order?.amount || 0,
-          currency: order.currency,
+          currency: order.currency || "INR",
           name: "Pizzeria",
           description: "Only place to fulfill your hunger for pizza.",
           order_id: order.id,
@@ -266,24 +267,24 @@ const UserCart = () => {
                 />
                 <p>Quantity: {item.quantity}</p>
                 <p>
-                  <b>Base:</b> {item.customizations.base?.name || "Default"}
+                  <b>Base:</b> {item.pizza.base?.name}
                 </p>
                 <p>
                   <b>Sauce:</b>{" "}
-                  {item.customizations.sauce.length > 0
-                    ? item.customizations.sauce.join(", ")
-                    : "None"}
+                  {item.pizza.sauce.length > 0
+                    ? item.pizza.sauce.map((s) => s.name).join(", ")
+                    : <t className="text-gray-400">dfds</t>}
                 </p>
                 <p>
                   <b>Cheese:</b>{" "}
-                  {item.customizations.cheese.length > 0
-                    ? item.customizations.cheese.join(", ")
+                  {item.pizza.cheese.length > 0
+                    ? item.pizza.cheese.map((c) => c.name).join(", ")
                     : "None"}
                 </p>
                 <p>
                   <b>Toppings:</b>{" "}
-                  {item.customizations.toppings.length > 0
-                    ? item.customizations.toppings.join(", ")
+                  {item.pizza.toppings.length > 0
+                    ? item.pizza.toppings.map((t) => t.name).join(", ")
                     : "None"}
                 </p>
                 <p className="text-lg font-bold mt-3">₹ {item.finalPrice}</p>
@@ -295,15 +296,13 @@ const UserCart = () => {
                         <li>Base: {item.customizations.base.name}</li>
                       )}
                       {item.customizations.sauce.length > 0 && (
-                        <li>Sauce: {item.customizations.sauce.join(", ")}</li>
+                        <li>Sauce: {item.customizations.sauce.map((s) => s.name).join(", ")}</li>
                       )}
                       {item.customizations.cheese.length > 0 && (
-                        <li>Cheese: {item.customizations.cheese.join(", ")}</li>
+                        <li>Cheese: {item.customizations.cheese.map((c) => c.name).join(", ")}</li>
                       )}
                       {item.customizations.toppings.length > 0 && (
-                        <li>
-                          Toppings: {item.customizations.toppings.join(", ")}
-                        </li>
+                        <li>Toppings: {item.customizations.toppings.map((t) => t.name).join(", ")}</li>
                       )}
                     </ul>
                   </div>
