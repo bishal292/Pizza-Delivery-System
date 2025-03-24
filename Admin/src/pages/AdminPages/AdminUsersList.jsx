@@ -8,6 +8,7 @@ import {
 } from "../../utils/constant";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const AdminUsersList = () => {
   const [users, setUsers] = useState([]);
@@ -220,11 +221,7 @@ const AdminUsersList = () => {
       </div>
 
       {loading && (
-        <div className="flex justify-center items-center space-x-2">
-          <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce"></div>
-          <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce delay-150"></div>
-          <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce delay-300"></div>
-        </div>
+        <LoadingScreen message="Fetching Users..." />
       )}
 
       {!loading && searchQuery.trim().length >= 3 && (

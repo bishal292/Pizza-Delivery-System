@@ -35,13 +35,14 @@ const orderSchema = new mongoose.Schema(
       },
     ],
     totalPrice: { type: Number, required: true },
-    orderId: { type: String, required: true },
-    paymentId: { type: String },
+    orderId: { type: String, required: true, unique: true },
+    paymentId: { type: String, unique: true },
     status: {
       type: String,
       enum: ["pending", "placed", "preparing", "prepared", "delivered","cancelled"],
       default: "pending",
     },
+    isStockDecrement: { type: Boolean, default: false ,select:false},
     tableNo: { type: Number, required: true },
   },
   { timestamps: true }
@@ -49,7 +50,9 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.post("save", async function (doc, next) {
   try { 
-    
+    if (doc.isStockDecrement) {
+      return next();
+    }
     const bulkOps = [];
 
     // Prepare batch stock reduction operations

@@ -12,6 +12,7 @@ import {
 } from "@/utils/constant";
 import UpdatePizza from "./UpdatePizza";
 import { Link } from "react-router-dom";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const AdminPizza = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -171,7 +172,7 @@ const AdminPizza = () => {
   };
 
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return <LoadingScreen message="Fetching Pizzas" />;
   }
 
   return (

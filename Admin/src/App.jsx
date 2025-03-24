@@ -18,12 +18,17 @@ import PizzaDetails from "./pages/AdminPages/PizzaDetails";
 import AdminUsersList from "./pages/AdminPages/AdminUsersList";
 import AdminUpdateUser from "./pages/AdminPages/AdminUpdateUser";
 import SelectedUserCart from "./pages/AdminPages/SelectedUserCart";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
   const { userInfo } = useAppStore();
   const isAuthenticated = !!userInfo; // If there is userInfo, then isAuthenticated is true
   const isAdmin = userInfo?.role === "admin";
+  
+  if (userInfo === null || userInfo === undefined) {
+    return <LoadingScreen />;
+  }
 
   // if user is not authenticated, redirect to login page for the respective user
   if (!isAuthenticated || !isAdmin) {
@@ -100,6 +105,7 @@ const App = () => {
         });
         setUserInfo(response.data);
       } catch (error) {
+        setUserInfo({});
         console.error(error.response?.data || error.message);
       }
     };

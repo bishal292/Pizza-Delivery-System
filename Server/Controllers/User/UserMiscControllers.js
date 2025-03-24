@@ -3,11 +3,13 @@ import { Cart } from "../../db/models/CartModel.js";
 import { User } from "../../db/models/UserModel.js";
 import { Inventory } from "../../db/models/InventoryModel.js";
 import { isValidObjectId } from "mongoose";
+import { calculatePrice } from "../../utils/util-functions.js";
 import {
-  calculatePrice,
-  getFormattedCartItems,
-} from "../../utils/util-functions.js";
-import { instance } from "../../Services/RazorPay.js";
+  checkOrderStatus,
+  checkPayment,
+  createPayment,
+  refundOrder,
+} from "../../Services/RazorPay.js";
 import { Order } from "../../db/models/Orders.js";
 
 export const getPizzas = async (req, res, next) => {
@@ -120,23 +122,6 @@ export const getCart = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Fetch cart and populate pizza details along with customizations
-    // const cart = await Cart.findOne({ user: userId })
-
-    // if (!cart) {
-    //   return res.status(200).json({ message: "Cart is empty", items: [] });
-    // }
-
-    // const formattedItems = await getFormattedCartItems({ cart });
-    // res.status(200).json({
-    //   _id: cart._id,
-    //   user: cart.user,
-    //   items: formattedItems,
-    //   totalPrice: cart.totalPrice,
-    //   createdAt: cart.createdAt,
-    //   updatedAt: cart.updatedAt,
-    // });
-
     const cart = await Cart.findOne({ user: userId })
       .populate({
         path: "items.pizza",
@@ -168,7 +153,9 @@ export const getCart = async (req, res, next) => {
         model: Inventory,
         select: "name -_id",
       });
-
+    if (!cart) {
+      return res.status(204).send("Cart is Empty");
+    }
     res.status(200).json(cart);
   } catch (error) {
     console.error(error.message);
@@ -289,7 +276,7 @@ export const placeOrder = async (req, res, next) => {
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart || cart.items.length < 1) {
-      return res.status(200).json({ message: "Cart is empty", items: [] });
+      return res.status(200).json({ message: "Cart is empty", order: [] });
     }
 
     const outOfStockItems = [];
@@ -299,47 +286,55 @@ export const placeOrder = async (req, res, next) => {
 
     for (const item of cart.items) {
       const qty = item.quantity;
-    
+
       const pizza = await Pizza.findById(item.pizza).populate(
         "base",
         "name price stock status"
       );
-    
+
       if (!pizza || pizza.status === "unavailable") {
-        outOfStockItems.push({ name: pizza?.name || "Unknown Pizza", reason: "Pizza unavailable" });
+        outOfStockItems.push({
+          name: pizza?.name || "Unknown Pizza",
+          reason: "Pizza unavailable",
+        });
         continue;
       }
-    
-      // ✅ Count base stock
       const baseId = item.customizations.base || pizza.base._id.toString();
       stockCounter[baseId] = (stockCounter[baseId] || 0) + qty;
-    
-      // ✅ Count sauce stock
-      const allSauces = [...(pizza.sauce || []), ...(item.customizations.sauce || [])];
+
+      const allSauces = [
+        ...(pizza.sauce || []),
+        ...(item.customizations.sauce || []),
+      ];
       for (const sauceId of allSauces) {
         stockCounter[sauceId] = (stockCounter[sauceId] || 0) + qty * 5;
       }
-    
-      // ✅ Count cheese stock
-      const allCheeses = [...(pizza.cheese || []), ...(item.customizations.cheese || [])];
+
+      const allCheeses = [
+        ...(pizza.cheese || []),
+        ...(item.customizations.cheese || []),
+      ];
       for (const cheeseId of allCheeses) {
         stockCounter[cheeseId] = (stockCounter[cheeseId] || 0) + qty * 5;
       }
-    
-      // ✅ Count topping stock
-      const allToppings = [...(pizza.toppings || []), ...(item.customizations.toppings || [])];
+
+      const allToppings = [
+        ...(pizza.toppings || []),
+        ...(item.customizations.toppings || []),
+      ];
       for (const toppingId of allToppings) {
         stockCounter[toppingId] = (stockCounter[toppingId] || 0) + qty * 10;
       }
     }
-    
-    // ✅ Batch check inventory stock
+
     const ingredientIds = Object.keys(stockCounter);
-    const inventoryItems = await Inventory.find({ _id: { $in: ingredientIds } });
-    
+    const inventoryItems = await Inventory.find({
+      _id: { $in: ingredientIds },
+    });
+
     for (const ingredient of inventoryItems) {
       const totalRequired = stockCounter[ingredient._id.toString()];
-      
+
       if (ingredient.stock < totalRequired) {
         outOfStockItems.push({
           name: ingredient.name,
@@ -350,29 +345,20 @@ export const placeOrder = async (req, res, next) => {
     }
 
     if (outOfStockItems.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Some items are out of stock Please remove them or wait for item to be available in Stock.",
-          outOfStockItems,
-        });
+      return res.status(400).json({
+        message:
+          "Some items are out of stock Please remove them or wait for item to be available in Stock.",
+        outOfStockItems,
+      });
     }
-    const options = {
-      amount: Number(cart?.totalPrice * 100) || 0,
-      currency: "INR",
-    };
-    // const order_Razor = await instance.orders.create(options);
-    // if (!order_Razor) {
-    //   return res.status(500).send("Failed to create order Payment");
-    // }
+
+    const order_Razor = await createPayment(cart.totalPrice);
 
     const order = new Order({
       userId,
       items: cart.items,
       totalPrice: cart.totalPrice,
-      // orderId: order_Razor.id, // Replace with actual RazorPay order ID if needed
-      orderId: "Demo_order-id", // Replace with actual RazorPay order ID if needed
+      orderId: order_Razor.success ? order_Razor.order.id : "RazorPay Order ID",
       tableNo,
     });
     await order.save();
@@ -381,16 +367,21 @@ export const placeOrder = async (req, res, next) => {
       return res.status(500).json({ message: "Failed to place order" });
     }
 
-    // const isCartClear = await Cart.findOneAndDelete({ user: userId });
-    // if (!isCartClear) {
-    //   return res.status(500).send("Failed to clear cart but created Order");
-    // }
+    const isCartClear = await Cart.findOneAndDelete({ user: userId });
+    if (!isCartClear) {
+      return res
+        .status(201)
+        .json({
+          message: "Failed to clear cart but created Order",
+          order: order_Razor.order || [],
+          _id: order._id,
+        });
+    }
 
     res.status(201).json({
       _id: order._id,
       message: "Order placed successfully",
-      // order: order_Razor,
-      order,
+      order: order_Razor.order || [],
     });
   } catch (error) {
     console.error(error.message);
@@ -401,22 +392,62 @@ export const placeOrder = async (req, res, next) => {
 export const getOrders = async (req, res, next) => {
   try {
     const userId = req.userId;
+    
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
-    const orders = await Order.find({ userId })
-      .populate("items.pizza")
-      .sort({ updatedAt: -1 });
+
+    const statusOrder = {
+      "prepared": 1,
+      "preparing": 2,
+      "placed": 3,
+      "pending": 4,
+      "delivered": 5,
+      "cancelled": 6
+    };
+
+    const orders = await Order.aggregate([
+      { $match: { userId: user._id } },
+      {
+        $addFields: {
+          statusPriority: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$status", "prepared"] }, then: statusOrder["prepared"] },
+                { case: { $eq: ["$status", "preparing"] }, then: statusOrder["preparing"] },
+                { case: { $eq: ["$status", "placed"] }, then: statusOrder["placed"] },
+                { case: { $eq: ["$status", "pending"] }, then: statusOrder["pending"] },
+                { case: { $eq: ["$status", "delivered"] }, then: statusOrder["delivered"] },
+                { case: { $eq: ["$status", "cancelled"] }, then: statusOrder["cancelled"] }
+              ],
+              default: 10
+            }
+          }
+        }
+      },
+      {
+        $sort: {
+          statusPriority: 1,         // Sort by status priority (ascending)
+          updatedAt: -1               // Then sort by updatedAt (descending)
+        }
+      }
+    ]);
+
     if (!orders || orders.length === 0) {
       return res.status(204).send("No orders found");
     }
 
-    const formattedOrders = orders.map((order) => ({
+    // Fetch order details and populate items
+    const populatedOrders = await Order.populate(orders, { path: "items.pizza" });
+
+    // Format the response
+    const formattedOrders = populatedOrders.map((order) => ({
       _id: order._id,
       totalPrice: order.totalPrice,
       totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
       image: order.items[0]?.pizza?.image || null,
+      orderId: order.orderId || null,
       status: order.status,
       tableNo: order.tableNo,
       createdAt: order.createdAt,
@@ -424,47 +455,172 @@ export const getOrders = async (req, res, next) => {
     }));
 
     res.status(200).json(formattedOrders);
-    res.status(200).send(orders);
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).send("Failed to fetch orders");
+  }
 };
 
+
 export const getOrderDetails = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const userFound = await User.findById(userId);
+    if (!userFound) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const { id: orderId } = req.query;
+    if (!orderId || !isValidObjectId(orderId)) {
+      return res.status(400).send("Order ID is required and must be valid");
+    }
+
+    const order = await Order.findById(orderId)
+      .populate({
+        path: "items.pizza",
+        model: Pizza,
+        populate: [
+          { path: "base", model: Inventory, select: "name -_id" },
+          { path: "sauce", model: Inventory, select: "name -_id" },
+          { path: "cheese", model: Inventory, select: "name -_id" },
+          { path: "toppings", model: Inventory, select: "name -_id" },
+        ],
+      })
+      .populate({
+        path: "items.customizations.base",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.sauce",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.cheese",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.toppings",
+        model: Inventory,
+        select: "name -_id",
+      });
+    if (!order) {
+      return res.status(204).json({ message: "Order not found" });
+    }
+    res.status(200).json(order);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const cancelOrder = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("Your User Account not Found.");
+    }
+    const { id: orderId } = req.query;
+    if (!orderId || !isValidObjectId(orderId)) {
+      return res.status(400).send("Order ID is required and must be valid");
+    }
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    if (order.status === "cancelled") {
+      return res.status(400).send("Order already cancelled");
+    }
+
+    if (order.status === "pending") {
+      const updatedOrder = await Order.findByIdAndUpdate(orderId, {
+        status: "cancelled",
+      });
+      if (!updatedOrder) {
+        return res.status(500).send("Failed to update order Status.");
+      }
+      return res.status(200).send("Order Cancelled Successfully");
+    } else if (order.status === "placed") {
+      const updatedOrder = await Order.findByIdAndUpdate(orderId, {
+        status: "cancelled",
+      });
+      if (!updatedOrder) {
+        return res.status(500).send("Failed to update order Status.");
+      }
+      // Refund Payment
+      const refundStaus = refundOrder(order.orderId);
+      if (!(await refundStaus).success) {
+        return res
+          .status(500)
+          .send(
+            "Order Cancelled Successfully but Payment Refund Failed,Please Contact Support."
+          );
+      }
+      return res
+        .status(200)
+        .send("Order Cancelled Successfully and Payment Refund intiated.");
+    }
+    return res
+      .status(400)
+      .send(
+        "Order cannot be cancelled now as it is already in preparation or delivered. Please Contact the Restaurant Support for further assistance."
+      );
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const completePayment = async (req, res, next) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
-
     const { id: orderId } = req.query;
-
     if (!orderId || !isValidObjectId(orderId)) {
-      return res.status(400).send("Valid order ID is required");
+      return res.status(400).send("Order ID is required and must be valid");
     }
-
-    const order = await Order.findById(orderId).populate("items.pizza");
+    const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).send("Order not found");
     }
-
-    if (order.userId.toString() !== userId) {
-      return res.status(403).send("You are not authorized to view this order");
+    if (order.status !== "pending") {
+      return res.status(400).send("Payment already completed");
     }
 
-    // Format the order items
-    const formattedItems = await getFormattedCartItems({ cart: order });
-    const formattedOrder = {
-      _id: order._id,
-      userId: order.userId,
-      items: formattedItems,
-      totalPrice: order.totalPrice,
-      status: order.status,
-      tableNo: order.tableNo,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
-    };
+    const orderStatus = await checkOrderStatus(order.orderId);
 
-    res.status(200).json(formattedOrder);
+    if (!orderStatus.success) {
+      const createorderpay = await createPayment(order.totalPrice);
+      if (!createorderpay.success) {
+        return res
+          .status(500)
+          .send("Failed to create payment order.Please try again later.");
+      }
+      await Order.findOneAndUpdate(
+        { _id: orderId },
+        {
+          orderId: createorderpay.order.id,
+        }
+      );
+      return res.status(200).json({
+        message: "Payment Order Created Successfully",
+        order: createorderpay.order,
+      });
+    }
+    if (orderStatus?.isPaid) {
+      await Order.findOneAndUpdate({ _id: orderId }, { status: "placed" });
+      res.status(400).json({ message: "Order is already paid." });
+    }
+    res.status(200).json({
+      message: "Order Payment Details",
+      order: orderStatus.razorpayOrder,
+    });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Internal Server Error");

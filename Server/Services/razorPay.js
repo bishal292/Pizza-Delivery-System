@@ -1,8 +1,7 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import { Order } from "../db/models/Orders.js";
 import { User } from "../db/models/UserModel.js";
-import { isValidObjectId } from "mongoose";
+import { Order } from "../db/models/Orders.js";
 
 // Razor-Pay instances
 export const instance = new Razorpay({
@@ -13,16 +12,23 @@ export const instance = new Razorpay({
   },
 });
 
-// instance.orders.all().then(console.log).catch(console.error);
-
+/**
+ * Verify Payment -> User Accessing this controller must be authenticated.
+ * @param {Request} req -> orderId, paymentId, signature in req.body
+ * @param {Response} res -> Response with status and message
+ * @param {NextFunction} next
+ */
 export const verifyPayment = async (req, res, next) => {
   try {
     const userId = req.userId;
     const user = User.findById(userId);
-    if(!user)return res.status(404).send("Your user account not found");
+    if (!user) return res.status(404).send("Your user account not found");
     const { orderId, paymentId, signature } = req.body;
-    if(!orderId || !paymentId || !signature){
-      return res.status(400).json({message: "Invalid Request"})
+    if (!orderId || !paymentId || !signature) {
+      return res.status(400).json({
+        message: "Invalid Request",
+        reason: "Missing orderId, paymentId or signature",
+      });
     }
     const body = `${orderId}|${paymentId}`;
     const expectedSignature = crypto
@@ -35,9 +41,10 @@ export const verifyPayment = async (req, res, next) => {
         { status: "placed", paymentId },
         { new: true }
       );
-      res
-        .status(200)
-        .json({ message: "Payment Successful", order: updatedOrder ? updatedOrder : null });
+      res.status(200).json({
+        message: "Payment Successful",
+        order: updatedOrder ? updatedOrder : null,
+      });
     } else {
       res.status(400).json({ message: "Invalid Payment" });
     }
@@ -47,34 +54,121 @@ export const verifyPayment = async (req, res, next) => {
   }
 };
 
-export const doPayment = async (req, res, next) => {
+/**
+ *
+ * @param {string} orderId
+ * @param {number} amount
+ * @param {string} currency -> Default: INR
+ * @returns
+ */
+export const createPayment = async (amount, currency = "INR") => {
   try {
-    const userId = req.userId;
-    const user = User.findById(userId);
-    if(!user)return res.status(404).send("Your user account not found");
-    const { id } = req.query;
-    if(!id || !isValidObjectId(id) )return res.status(400).json({message: "Invalid orderId"})
-    const order = await Order.findById(id);
-    if(!order)return res.status(404).json({message: "Order not found"});
-    if(order.user.toString() !== userId)return res.status(403).json({message: "You are not authorized to make payment for this order"});
-    
-    if(order.status !== "pending")return res.status(400).json({message: "Order already placed"});
-
-
-    const options = {
-      amount: order.totalAmount * 100,
-      currency: "INR",
-      receipt: order._id,
-    };
-    await instance.orders.create(options, (err, order) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("Internal Server Error");
-      }
-      res.status(200).json({order});
+    const razorpayOrder = await instance.orders.create({
+      amount: amount * 100, // Amount in paise (₹1 = 100 paise)
+      currency: currency,
+      payment_capture: 1, // Auto-capture payment
+      notes: {
+        description: "Pizza Delivery System Payment",
+      },
     });
+    return { success: true, order: razorpayOrder };
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Internal Server Error");
+    console.error("Error creating Razorpay order:", error);
+    return {
+      success: false,
+      message: "Failed to create payment order.",
+      error,
+    };
   }
 };
+
+/**
+ *
+ * @param {string} razorpayOrderId
+ * @returns
+ */
+export const refundOrder = async (razorpayOrderId) => {
+  try {
+    const order = await instance.orders.fetch(razorpayOrderId);
+
+    if (order.status !== "paid") {
+      console.log("Order is not paid. No refund required.");
+      return {
+        success: false,
+        message: "Order is not paid, no refund needed.",
+      };
+    }
+
+    const payments = await instance.orders.fetchPayments(razorpayOrderId);
+
+    if (payments.items.length === 0) {
+      console.log("No payments found for this order.");
+      return { success: false, message: "No payments found." };
+    }
+
+    const paymentId = payments.items[0].id;
+
+    // Create the refund
+    const refund = await instance.payments.refund(paymentId, {
+      amount: order.amount,
+      speed: "normal",
+      notes: {
+        reason: "Order cancelled",
+      },
+    });
+
+    console.log("Refund successful:", refund);
+    return { success: true, message: "Refund processed successfully.", refund };
+  } catch (error) {
+    console.error("Error processing refund:", error);
+    return { success: false, message: "Refund failed.", error };
+  }
+};
+
+/**
+ *
+ * @param {string} razorpayOrderId
+ * @returns { success: boolean, isPaid: boolean }
+ */
+export const checkOrderStatus = async (razorpayOrderId) => {
+  try {
+    // Fetch the order from Razorpay
+    const razorpayOrder = await instance.orders.fetch(razorpayOrderId);
+
+    if (!razorpayOrder) {
+      return { success: false, message: "Order not found in Razorpay." };
+    }
+    console.log(razorpayOrder);
+    return {
+      success: true,
+      isPaid: razorpayOrder.status === "paid",
+      razorpayOrder,
+    };
+  } catch (error) {
+    console.error("Error checking Razorpay order status:", error);
+    return { success: false, message: "Failed to fetch order status.", error };
+  }
+};
+
+/**
+ *
+ * @param {string} orderId
+ * @returns
+ */
+
+export async function checkPayment(razorpayOrderId) {
+  try {
+
+    const payments = await instance.orders.fetchPayments(razorpayOrderId);
+
+    const isPaid = payments.items.some((payment) => payment.status !== "paid");
+    return{
+      success:true,
+      isPaid:isPaid,
+      payments
+    }
+  } catch (error) {
+    console.error("Error checking Razorpay order status:", error);
+    return { success: false, message: "Failed to fetch order status.", error };
+  }
+}

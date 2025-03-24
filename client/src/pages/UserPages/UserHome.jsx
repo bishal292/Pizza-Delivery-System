@@ -7,6 +7,7 @@ import ImageSlider from "@/components/ImageSlider";
 import CustomizePizzaModal from "@/components/CustomizePizzaModal"; // Import the CustomizePizzaModal component
 import { FaCartPlus } from "react-icons/fa6";
 import { Pizza } from "lucide-react";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const UserHome = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -105,7 +106,9 @@ const UserHome = () => {
   };
 
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return(
+      <LoadingScreen message="" />
+    )
   }
 
   return (

@@ -19,7 +19,7 @@ if (import.meta.env.NODE_ENV !== "production") {
 const AppTheme = () => {
   const { theme, setTheme } = useAppStore();
   useEffect(() => {
-    if (theme === "dark") {
+    if (theme && theme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");

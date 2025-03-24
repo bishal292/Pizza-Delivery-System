@@ -1,5 +1,8 @@
+import LoadingScreen from "@/components/LoadingScreen";
+import { useAppStore } from "@/Store/store";
 import { apiClient } from "@/utils/api-client";
-import { HOST, USER_GET_ORDERS } from "@/utils/constant";
+import { HOST, USER_CANCEL_ORDER, USER_GET_ORDERS } from "@/utils/constant";
+import { handleCompletePayment } from "@/utils/razorpayServices";
 import React, { useEffect, useState } from "react";
 import {
   FaClock,
@@ -9,11 +12,15 @@ import {
   FaUtensils,
   FaClipboardList,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const UserOrders = () => {
+  const {userInfo} = useAppStore();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSubmitting,setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -39,42 +46,29 @@ const UserOrders = () => {
   }, []);
 
   const handleCancelOrder = async (orderId) => {
+    setIsSubmitting(true);
     try {
-      const response = await apiClient.post(`/cancel-order/${orderId}`, {}, { withCredentials: true });
+      const response = await apiClient.get(`${USER_CANCEL_ORDER}?id=${orderId}`, {
+        withCredentials: true,
+      });
+      console.log(response);
       if (response.status === 200) {
-        setOrders((prevOrders) =>
-          prevOrders.map((order) =>
+        toast.success(response.data)
+        setOrders((orders) =>
+          orders.map((order) =>
             order._id === orderId ? { ...order, status: "cancelled" } : order
           )
         );
-        alert("Order cancelled successfully.");
-      } else {
-        alert("Failed to cancel the order.");
       }
     } catch (error) {
       console.error("Error cancelling order:", error);
-      alert("An error occurred while cancelling the order.");
+      toast.error(error.response?.data?.message || error.response?.message || "Failed to cancel order.");
+    }finally{
+      setIsSubmitting(false);
     }
   };
 
-  const handleCompletePayment = async (orderId) => {
-    try {
-      const response = await apiClient.post(`/complete-payment/${orderId}`, {}, { withCredentials: true });
-      if (response.status === 200) {
-        setOrders((prevOrders) =>
-          prevOrders.map((order) =>
-            order._id === orderId ? { ...order, status: "placed" } : order
-          )
-        );
-        alert("Payment completed successfully.");
-      } else {
-        alert("Failed to complete the payment.");
-      }
-    } catch (error) {
-      console.error("Error completing payment:", error);
-      alert("An error occurred while completing the payment.");
-    }
-  };
+  
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -97,9 +91,7 @@ const UserOrders = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-lg text-gray-600">Loading orders...</p>
-      </div>
+      <LoadingScreen message="Fetching your orders..." />
     );
   }
 
@@ -170,28 +162,32 @@ const UserOrders = () => {
                     <p className="text-sm">
                       <strong className="text-gray-700">Placed On:</strong>{" "}
                       <span className="text-gray-900">
-                        {new Date(order.createdAt).toLocaleDateString()}{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}{"-"}
                         {new Date(order.createdAt).toLocaleTimeString()}
                       </span>
                     </p>
                   </div>
 
                   <div className="flex justify-end mt-4 space-x-2">
-                    <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+                    <Link className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                      to={`/pizzeria/order/${order._id}`}
+                    >
                       View Details
-                    </button>
+                    </Link>
                     {(order.status === "pending" || order.status === "placed") && (
                       <button
                         onClick={() => handleCancelOrder(order._id)}
                         className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                        disabled={isSubmitting}
                       >
                         Cancel
                       </button>
                     )}
                     {order.status === "pending" && (
                       <button
-                        onClick={() => handleCompletePayment(order._id)}
+                        onClick={() => handleCompletePayment(userInfo, order._id, setIsSubmitting)}
                         className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
+                        disabled={isSubmitting}
                       >
                         Complete Payment
                       </button>

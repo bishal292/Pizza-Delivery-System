@@ -13,13 +13,18 @@ import UserAuth from "./pages/UserPages/UserAuth";
 import { apiClient } from "./utils/api-client";
 import { GET_LOGGED_USER_INFO } from "./utils/constant";
 import UserOrders from "./pages/UserPages/UserOrders";
+import OrderDetails from "./pages/UserPages/OrderDetails";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Private Routes Component (Protected Routes) -> Only Authenticated Users can access these Routes.
 const PrivateRoutes = ({ children }) => {
   const { userInfo } = useAppStore();
   const isAuthenticated = !!userInfo; // If there is userInfo, then isAuthenticated is true
   const isUser = userInfo?.role === "user";
-
+  
+  if(userInfo === null || userInfo === undefined) {
+    return <LoadingScreen />;
+  }
   // if user is not authenticated, redirect to login page for the respective user
   if (!isAuthenticated || !isUser) {
     return <Navigate to="/pizzeria/auth/login" replace />;
@@ -72,6 +77,7 @@ const router = createBrowserRouter([
       { path: "home", element: <UserHome /> },
       { path: "orders", element: <UserOrders /> },
       { path: "cart", element: <UserCart /> },
+      {path: "order/:orderId", element: <OrderDetails />}
       // { path: "*", element: <Navigate to="home" /> },
     ],
   },
@@ -93,6 +99,7 @@ const App = () => {
         });
         setUserInfo(response.data);
       } catch (error) {
+        setUserInfo({});
         console.error(error.response?.data || error.message);
       }
     };

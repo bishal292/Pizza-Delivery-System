@@ -1,3 +1,4 @@
+import LoadingScreen from "@/components/LoadingScreen";
 import { apiClient } from "@/utils/api-client";
 import {
   ADMIN_ADD_PRODUCT,
@@ -186,7 +187,7 @@ const AdminInventory = () => {
   };
 
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return <LoadingScreen message="Fetching Inventory...." />;
   }
   return (
     <div className="p-6 font-sans">

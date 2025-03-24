@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { apiClient } from "@/utils/api-client";
 import { HOST, ADMIN_GET_PIZZA_DETAILS, ADMIN_DELETE_PIZZA } from "@/utils/constant";
 import { toast } from "sonner";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const PizzaDetails = () => {
     const { id } = useParams();
@@ -48,7 +49,7 @@ const PizzaDetails = () => {
     };
 
     if (!isLoaded) {
-        return <div>Loading...</div>;
+        return <LoadingScreen message="Fetching Pizza Details" />;
     }
 
     if (!pizza) {

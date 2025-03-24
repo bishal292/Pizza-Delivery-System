@@ -3,6 +3,7 @@ import { HOST, ADMIN_USER_CART } from "@/utils/constant";
 import { toast } from "sonner";
 import { apiClient } from "@/utils/api-client";
 import { useParams } from "react-router-dom";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const UserCart = () => {
   const { cartId } = useParams();
@@ -42,11 +43,7 @@ const UserCart = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center space-x-2">
-        <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce"></div>
-        <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce delay-150"></div>
-        <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce delay-300"></div>
-      </div>
+      <LoadingScreen message="Fetching User Cart Details" />
     );
   }
   if (noData) {

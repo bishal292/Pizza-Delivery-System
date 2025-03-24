@@ -10,9 +10,11 @@ import {
   placeOrder,
   getOrders,
   getOrderDetails,
+  cancelOrder,
+  completePayment,
 } from "../../Controllers/User/UserMiscControllers.js";
 import { verifyToken } from "../../Middlewares/AuthMiddleware.js";
-import { verifyPayment, doPayment } from "../../Services/RazorPay.js";
+import { verifyPayment } from "../../Services/RazorPay.js";
 
 const UserRouter = Router();
 
@@ -26,7 +28,8 @@ UserRouter.get('/options', getOptions);// Get all the options for customizing th
 UserRouter.delete('/cart/clear',verifyToken, clearCart);
 UserRouter.post('/place-order',verifyToken, placeOrder);
 UserRouter.get('/orders',verifyToken, getOrders);
-UserRouter.get('/order-details',verifyToken, getOrderDetails);
+UserRouter.get('/order/details',verifyToken, getOrderDetails);
 UserRouter.post("/order/verify-payment",verifyToken, verifyPayment);
-UserRouter.post("/do-payment",verifyToken, doPayment);
+UserRouter.get("/order/complete-payment",verifyToken, completePayment);
+UserRouter.get("/order/cancel",verifyToken, cancelOrder);
 export default UserRouter;
