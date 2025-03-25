@@ -5,7 +5,6 @@ import {
   addPizza,
   addProduct,
   allOrders,
-  CompletedOrders,
   dashboard,
   deletePizza,
   deleteProduct,

@@ -32,7 +32,7 @@ createRoot(document.getElementById("root")).render(
     {/* <StrictMode> */}
     <SocketProvider>
 
-      <Toaster closeButton />
+      <Toaster closeButton duration={3000} />
       <AppTheme />
       <App />
     </SocketProvider>

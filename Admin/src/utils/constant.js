@@ -41,6 +41,6 @@ export const ADMIN_GET_PIZZA_DETAILS = `${baseRoute}/admin/pizza/get-pizza-detai
 // Admin - Order Routes
 export const ADMIN_UPDATE_ORDER_STATUS = `${baseRoute}/admin/order`  // PATCH -> id : query -> status : body -> Update status
 export const ADMIN_ALL_ORDERS = `${baseRoute}/admin/orders` // GET -> ALL ORDERS
-export const ADMIN_USER_ORDERS = `${baseRoute}/admin/user/orders` // GET -> id : query -> particular USER's ALL ORDERS
+export const ADMIN_USER_ORDERS = `${baseRoute}/admin/user/orders` // GET -> id : userId-query -> particular USER's ALL ORDERS
 export const ADMIN_ORDER_DETAILS = `${baseRoute}/admin/order/detail` // GET -> id : query -> particular ORDER's DETAILS
 export const ADMIN_ORDER_FILTERED = `${baseRoute}/admin/orders/filtered` // GET -> status : query  -> orders according to given valid status like "completed" or "pending"

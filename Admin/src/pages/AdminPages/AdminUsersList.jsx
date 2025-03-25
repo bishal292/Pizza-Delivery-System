@@ -24,7 +24,9 @@ const AdminUsersList = () => {
   });
   const [confirmationUserId, setConfirmationUserId] = useState(null);
   const [limit, setLimit] = useState(25);
-  const [searchQuery, setSearchQuery] = useState(new URLSearchParams(location.search).get("id") || "");
+  const [searchQuery, setSearchQuery] = useState(
+    new URLSearchParams(location.search).get("id") || ""
+  );
   const [hasMore, setHasMore] = useState(true);
   const [skip, setSkip] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -41,7 +43,7 @@ const AdminUsersList = () => {
         );
         setSkip(skip + limit);
         setHasMore(response.data.length === limit);
-      }else if(response.status === 204){
+      } else if (response.status === 204) {
         setHasMore(false);
       }
     } catch (error) {
@@ -98,10 +100,13 @@ const AdminUsersList = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await apiClient.delete(`${ADMIN_DELETE_USER}?id=${confirmationUserId}`,{withCredentials:true});
-      if(response.status === 200){
+      const response = await apiClient.delete(
+        `${ADMIN_DELETE_USER}?id=${confirmationUserId}`,
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
         toast.success("User Deleted Successfully");
-        setUsers(users.filter(user => user.id !== confirmationUserId));
+        setUsers(users.filter((user) => user.id !== confirmationUserId));
       }
     } catch (error) {
       console.error(error.response?.data || error.message);
@@ -168,13 +173,13 @@ const AdminUsersList = () => {
         console.log(response.data.user);
         setUsers(
           users.map((user) => {
-            if(user.id === editUser.id){
+            if (user.id === editUser.id) {
               user.name = response.data.user.name;
               user.email = response.data.user.email;
             }
             return user;
-          }
-        ));
+          })
+        );
         toast.success("User Updated Successfully");
       }
     } catch (error) {
@@ -238,9 +243,7 @@ const AdminUsersList = () => {
         </div>
       </div>
 
-      {loading && (
-        <LoadingScreen message="Fetching Users..." />
-      )}
+      {loading && <LoadingScreen message="Fetching Users..." />}
 
       {!loading && searchQuery.trim().length >= 3 && (
         <div>
@@ -312,22 +315,30 @@ const AdminUsersList = () => {
         <table className="w-full border-collapse border border-gray-300 mb-6">
           <thead>
             <tr className="bg-gray-100 text-left">
-              <th className="p-3 border border-gray-300">#</th>
-              <th className="p-3 border border-gray-300">Name</th>
-              <th className="p-3 border border-gray-300">Email</th>
-              <th className="p-3 border border-gray-300">Total Orders</th>
-              <th className="p-3 border border-gray-300">Cart</th>
-              <th className="p-3 border border-gray-300">Actions</th>
+              <th className="p-3 border border-gray-300 text-center">#</th>
+              <th className="p-3 border border-gray-300 text-center">Name</th>
+              <th className="p-3 border border-gray-300 text-center">Email</th>
+              <th className="p-3 border border-gray-300 text-center">Total Orders</th>
+              <th className="p-3 border border-gray-300 text-center">Cart</th>
+              <th className="p-3 border border-gray-300 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user, index) => (
               <tr key={user.id} className="border-b border-gray-300">
-                <td className="p-3">{index + 1}</td>
-                <td className="p-3">{user.name}</td>
-                <td className="p-3">{user.email}</td>
-                <td className="p-3">{user.totalOrder}</td>
-                <td className="p-3">
+                <td className="p-3 text-center">{index + 1}</td>
+                <td className="p-3 text-center">{user.name}</td>
+                <td className="p-3 text-center">{user.email}</td>
+                <td className="p-3 text-center">
+                  {user.totalOrder > 0 ? (
+                    <Link to={`/admin/user/orders/${user.id}`}
+                    className="text-blue-500 underline font-bold"
+                    > {user.totalOrder}</Link>
+                  ) : (
+                    user.totalOrder
+                  )}
+                </td>
+                <td className="p-3 text-center">
                   {user.cart ? (
                     <Link
                       to={`/admin/cart/${user.cart}`}
@@ -340,7 +351,7 @@ const AdminUsersList = () => {
                     "No Cart"
                   )}
                 </td>
-                <td className="p-3">
+                <td className="p-3 text-center">
                   <button
                     onClick={() => handleUpdate(user)}
                     className="mr-3 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"

@@ -11,7 +11,6 @@ import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const OrderDetails = () => {
-  const { userInfo } = useAppStore();
   const { orderId } = useParams();
   const [loading, setLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState(null);
@@ -55,26 +54,48 @@ const OrderDetails = () => {
       );
       return;
     }
-    try{
-        setIsSubmitting(true);
-        const response = await apiClient.patch(
-            `${ADMIN_UPDATE_ORDER_STATUS}?id=${orderId}`,
-            { status: newStatus },
-            { withCredentials: true }
+    try {
+      setIsSubmitting(true);
+      const response = await apiClient.patch(
+        `${ADMIN_UPDATE_ORDER_STATUS}?id=${orderId}`,
+        { status: newStatus },
+        { withCredentials: true }
+      );
+      console.log(response);
+      if (response.status === 200) {
+        setStatus(newStatus);
+        toast.success(
+          response.data.message || "Order status updated successfully"
         );
-        console.log(response);
-        if (response.status === 200) {
-            setStatus(newStatus);
-            toast.success(response.data.message || "Order status updated successfully");
-        }
-    }catch{
-        console.log(error);
-        toast.error(error.response?.data?.message || error.response?.data || "Some Unknown Error Occured");
-    }finally{
-        setIsSubmitting(false);
+      }
+    } catch {
+      console.log(error);
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data ||
+          "Some Unknown Error Occured"
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-200 text-yellow-800";
+      case "preparing":
+        return "bg-blue-200 text-blue-800";
+      case "prepared":
+        return "bg-purple-200 text-purple-800";
+      case "completed":
+        return "bg-green-200 text-green-800";
+      case "cancelled":
+        return "bg-red-200 text-red-800";
+      default:
+        return "bg-gray-200 text-gray-800";
+    }
+  };
 
   if (loading) {
     return <LoadingScreen message="Fetching Order Details" />;
@@ -188,18 +209,20 @@ const OrderDetails = () => {
         </div>
         <div className="mt-4 sm:mt-0 flex gap-2">
           {status !== "cancelled" && status !== "completed" && (
-            <div className="flex">
+            <div className="flex items-center justify-center gap-2">
               <label htmlFor="orderStatus">Update Status</label>
-              <select 
-              disabled={isSubmitting || status === "cancelled" || status === "completed" }
+              <select
+                disabled={
+                  isSubmitting ||
+                  status === "cancelled" ||
+                  status === "completed"
+                }
                 id="orderStatus"
                 value={status}
                 onChange={(e) => handleUpdateOrder(e.target.value)}
-                className="bg-green-400 hover:cursor-pointer border p-2 rounded-lg w-full"
+                className={`p-2 cursor-pointer rounded ${getStatusColor(status)}`}
               >
-                <option value="" disabled>
-                  Update status
-                </option>
+                <option value="pending">Pending</option>
                 <option value="placed">Placed</option>
                 <option value="preparing">Preparing</option>
                 <option value="prepared">Prepared</option>

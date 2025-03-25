@@ -804,7 +804,105 @@ export const getOrderAccStatus = async (req, res, next) => {
   }
 };
 
-export const userOrders = async (req, res, next) => {};
+export const userOrders = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = Admin.findById(userId);
+    if (!admin) return res.status(400).send("Your Admin Account Not Found");
+
+    const { id } = req.query;
+
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).send("id is required and must be valid object id");
+    }
+
+    const user = await User.findById(id);
+
+    const statusOrder = {
+      prepared: 1,
+      preparing: 2,
+      placed: 3,
+      pending: 4,
+      delivered: 5,
+      cancelled: 6,
+    };
+
+    const orders = await Order.aggregate([
+      { $match: { userId: user._id } },
+      {
+        $addFields: {
+          statusPriority: {
+            $switch: {
+              branches: [
+                {
+                  case: { $eq: ["$status", "prepared"] },
+                  then: statusOrder["prepared"],
+                },
+                {
+                  case: { $eq: ["$status", "preparing"] },
+                  then: statusOrder["preparing"],
+                },
+                {
+                  case: { $eq: ["$status", "placed"] },
+                  then: statusOrder["placed"],
+                },
+                {
+                  case: { $eq: ["$status", "pending"] },
+                  then: statusOrder["pending"],
+                },
+                {
+                  case: { $eq: ["$status", "delivered"] },
+                  then: statusOrder["delivered"],
+                },
+                {
+                  case: { $eq: ["$status", "cancelled"] },
+                  then: statusOrder["cancelled"],
+                },
+              ],
+              default: 10,
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          statusPriority: 1, // Sort by status priority (ascending)
+          updatedAt: -1, // Then sort by updatedAt (descending)
+        },
+      },
+    ]);
+
+    if (!orders || orders.length === 0) {
+      return res.status(204).send("No orders found");
+    }
+
+    // Fetch order details and populate items
+    const populatedOrders = await Order.populate(orders, {
+      path: "items.pizza",
+    });
+
+    const formattedOrders = populatedOrders.map((order) => ({
+      _id: order._id,
+      totalPrice: order.totalPrice,
+      totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      image: order.items[0]?.pizza?.image || null,
+      orderId: order.orderId || null,
+      status: order.status,
+      tableNo: order.tableNo,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    }));
+
+    res.status(200).json({
+      user: {
+        name: user.name,
+        email: user.email,
+        id: user._id,
+      },
+      orders:formattedOrders,
+    });
+  } catch (error) {}
+};
 
 export const OrderDetails = async (req, res, next) => {
   try {
@@ -887,8 +985,10 @@ export const updateOrderStatus = async (req, res, next) => {
         .status(400)
         .send("Status is required and must be valid to update");
     }
-    if(status === "completed" || status === "cancelled"){
-      return res.status(400).send("Cannot update the status of a completed or cancelled order.");
+    if (status === "completed" || status === "cancelled") {
+      return res
+        .status(400)
+        .send("Cannot update the status of a completed or cancelled order.");
     }
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId,
@@ -896,15 +996,9 @@ export const updateOrderStatus = async (req, res, next) => {
       { new: true }
     );
     if (!updatedOrder) return res.status(500).send("Error updating order");
-    res
-      .status(200)
-      .json({
-        message: "Order status updated successfully",
-        newStatus: updatedOrder.status,
-      });
+    res.status(200).json({
+      message: "Order status updated successfully",
+      newStatus: updatedOrder.status,
+    });
   } catch (error) {}
 };
-export const CompletedOrders = async (req, res, next) => {};
-
-export const CancelledOrders = async (req, res, next) => {};
-export const PendingOrders = async (req, res, next) => {};

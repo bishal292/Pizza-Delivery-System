@@ -16,7 +16,7 @@ import AdminOrders from "./pages/AdminPages/AdminOrders";
 import AdminPizza from "./pages/AdminPages/AdminPizza";
 import PizzaDetails from "./pages/AdminPages/PizzaDetails";
 import AdminUsersList from "./pages/AdminPages/AdminUsersList";
-import AdminUpdateUser from "./pages/AdminPages/AdminUpdateUser";
+import UserOdersList from "./pages/AdminPages/UserOrdersList";
 import SelectedUserCart from "./pages/AdminPages/SelectedUserCart";
 import LoadingScreen from "./components/LoadingScreen";
 import SelectedOrder from "./pages/AdminPages/SelectedOrder";
@@ -84,10 +84,10 @@ const router = createBrowserRouter([
       { path: "inventory", element: <AdminInventory /> },
       { path: "orders", element: <AdminOrders /> },
       { path: "users-list", element: <AdminUsersList /> },
-      { path: "user/:id", element: <AdminUpdateUser /> },
       { path: "pizza/:id", element: <PizzaDetails /> },
       {path:"cart/:cartId",element: <SelectedUserCart />},
       {path:"order/:orderId",element: <SelectedOrder />},
+      { path: "user/orders/:id", element: <UserOdersList /> },
     ],
   },
   {

@@ -149,9 +149,12 @@ const AdminPizza = () => {
   const deletePizza = async () => {
     setIsSubmitting(true);
     try {
-      const response = await apiClient.delete(`${ADMIN_DELETE_PIZZA}?id=${pizzaToDelete}`, {
-        withCredentials: true,
-      });
+      const response = await apiClient.delete(
+        `${ADMIN_DELETE_PIZZA}?id=${pizzaToDelete}`,
+        {
+          withCredentials: true,
+        }
+      );
       if (response.status === 200) {
         toast.success("Pizza Deleted Successfully");
         setPizzas(pizzas.filter((pizza) => pizza._id !== pizzaToDelete));
@@ -165,7 +168,11 @@ const AdminPizza = () => {
   };
 
   const handleUpdate = (updatedPizza) => {
-    setPizzas(pizzas.map((pizza) => (pizza._id === updatedPizza._id ? updatedPizza : pizza)));
+    setPizzas(
+      pizzas.map((pizza) =>
+        pizza._id === updatedPizza._id ? updatedPizza : pizza
+      )
+    );
     setIsUpdateScreenOpen(false);
     setEditablePizzaId(null);
     setEditablePizza({});
@@ -201,22 +208,32 @@ const AdminPizza = () => {
       )}
       <div className="grid grid-cols-3 gap-4">
         {pizzas.map((pizza) => (
-          <div key={pizza._id} className="border p-4 rounded">
-            <Link to={`/admin/pizza/${pizza._id}`} className="block">
-              <h2 className="text-xl font-bold">{pizza.name}</h2>
+          <div
+            key={pizza._id}
+            className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition"
+          >
+            <Link to={`/admin/pizza/${pizza._id}`}>
               <img
                 src={`${HOST}/pizza-image/${pizza.image}`}
                 alt={pizza.name}
-                className="w-full h-32 object-cover mb-2"
+                className="w-full h-48 object-cover"
               />
-              <p>{pizza.description}</p>
-              <p>Size: {pizza.size}</p>
-              <p>Price: ${pizza.price}</p>
+              <div className="p-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {pizza.name}
+                </h2>
+                <p className="text-gray-600">{pizza.description}</p>
+                <p className="text-gray-700 font-bold mt-2">
+                  Size: {pizza.size}
+                </p>
+                <p >
+                  Price: <span className="text-green-600 font-bold">₹ {pizza.price}</span>
+                </p>
+              </div>
             </Link>
-            <div className="flex justify-end space-x-2 mt-2">
+            <div className="flex justify-between p-4">
               <button
-                disabled={isSubmitting}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
                 onClick={() => {
                   setEditablePizzaId(pizza._id);
                   setEditablePizza(pizza);
@@ -226,8 +243,7 @@ const AdminPizza = () => {
                 Update
               </button>
               <button
-                disabled={isSubmitting}
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
                 onClick={() => {
                   setPizzaToDelete(pizza._id);
                   setIsDeletePopupOpen(true);
