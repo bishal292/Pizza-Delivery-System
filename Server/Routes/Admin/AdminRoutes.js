@@ -4,24 +4,26 @@ import { verifyToken } from "../../Middlewares/AuthMiddleware.js";
 import {
   addPizza,
   addProduct,
+  allOrders,
   CompletedOrders,
   dashboard,
   deletePizza,
   deleteProduct,
   deleteUser,
   getAllUsers,
+  getOrderAccStatus,
   getPizzaDetails,
   getPizzas,
   getUserCart,
   getUserWithNameOrEmail,
   imageUpload,
   inventory,
-  liveOrders,
   OrderDetails,
   updateOrderStatus,
   updatePizza,
   updateProduct,
   updateUser,
+  userOrders,
 } from "../../Controllers/Admin/AdminMiscController.js";
 import { upload } from "../../utils/util-functions.js";
 
@@ -51,17 +53,19 @@ AdminRouter.post("/addpizza", verifyToken, addPizza);
 AdminRouter.patch("/updatepizza", verifyToken, updatePizza);
 AdminRouter.delete("/deletepizza", verifyToken, deletePizza);
 
-// Admin - Order Routes
-AdminRouter.get("/orders", verifyToken, liveOrders);
-AdminRouter.patch("/updateorder/:orderId", verifyToken, updateOrderStatus);
-AdminRouter.get("/completedorders", verifyToken, CompletedOrders);
-
 // Admin - User Routes
 AdminRouter.get("/users-list", verifyToken, getAllUsers);
 AdminRouter.get("/user/search", verifyToken, getUserWithNameOrEmail);
 AdminRouter.patch("/update-user", verifyToken, updateUser);
 AdminRouter.delete("/delete-user", verifyToken, deleteUser);
+
 AdminRouter.get("/user/cart",verifyToken,getUserCart)
-AdminRouter.get("/user-order-details", verifyToken, OrderDetails);
+
+// Admin -> User - Order Details
+AdminRouter.get("/orders", verifyToken, allOrders);
+AdminRouter.patch("/order", verifyToken, updateOrderStatus);
+AdminRouter.get("/user/orders", verifyToken, userOrders);
+AdminRouter.get("/orders/filtered", verifyToken, getOrderAccStatus); // -> GET -> status : query -> orders according to given valid status like "completed" or "pending"
+AdminRouter.get("/order/detail", verifyToken, OrderDetails);
 
 export default AdminRouter;

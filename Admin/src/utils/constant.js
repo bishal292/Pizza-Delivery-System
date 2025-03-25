@@ -30,11 +30,6 @@ export const ADMIN_DELETE_USER = `${baseRoute}/admin/delete-user`  // DELETE -> 
 export const ADMIN_USER_CART = `${baseRoute}/admin/user/cart`  // DELETE -> USER ID
 export const ADMIN_USER_ORDER_DETAILS = `${baseRoute}/admin/user-order-details`  // DELETE -> USER ID
 
-// Admin - Order Routes
-export const ADMIN_LIVE_ORDERS = `${baseRoute}/admin/orders`
-export const ADMIN_UPDATE_ORDER_STATUS = `${baseRoute}/admin/updateorder`  // PATCH -> ORDER ID
-export const ADMIN_COMPLETED_ORDERS = `${baseRoute}/admin/completedorders`
-
 // Admin - Pizza Routes
 export const ADMIN_GET_PIZZAS = `${baseRoute}/admin/get-pizzas`
 export const ADMIN_UPLOAD_PIZZA_IMAGE = `${baseRoute}/admin/pizza/upload`
@@ -42,3 +37,10 @@ export const ADMIN_ADD_PIZZA = `${baseRoute}/admin/addpizza`
 export const ADMIN_UPDATE_PIZZA = `${baseRoute}/admin/updatepizza`  // PATCH -> PIZZA ID
 export const ADMIN_DELETE_PIZZA = `${baseRoute}/admin/deletepizza`  // DELETE -> PIZZA ID
 export const ADMIN_GET_PIZZA_DETAILS = `${baseRoute}/admin/pizza/get-pizza-details`  // GET -> PIZZA ID
+
+// Admin - Order Routes
+export const ADMIN_UPDATE_ORDER_STATUS = `${baseRoute}/admin/order`  // PATCH -> id : query -> status : body -> Update status
+export const ADMIN_ALL_ORDERS = `${baseRoute}/admin/orders` // GET -> ALL ORDERS
+export const ADMIN_USER_ORDERS = `${baseRoute}/admin/user/orders` // GET -> id : query -> particular USER's ALL ORDERS
+export const ADMIN_ORDER_DETAILS = `${baseRoute}/admin/order/detail` // GET -> id : query -> particular ORDER's DETAILS
+export const ADMIN_ORDER_FILTERED = `${baseRoute}/admin/orders/filtered` // GET -> status : query  -> orders according to given valid status like "completed" or "pending"

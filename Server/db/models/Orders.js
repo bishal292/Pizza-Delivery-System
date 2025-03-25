@@ -39,14 +39,50 @@ const orderSchema = new mongoose.Schema(
     paymentId: { type: String, unique: true },
     status: {
       type: String,
-      enum: ["pending", "placed", "preparing", "prepared", "delivered","cancelled"],
+      enum: ["pending", "placed", "preparing", "prepared", "completed","cancelled"],
       default: "pending",
     },
     isStockDecrement: { type: Boolean, default: false ,select:false},
     tableNo: { type: Number, required: true },
+    dailyOrderId: { type: Number, required: true, unique: true },
   },
   { timestamps: true }
 );
+
+orderSchema.pre("save", async function (next) {
+  try {
+    if (this.isNew) {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const year = String(now.getFullYear()).slice(-2); 
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const lastOrder = await this.constructor
+        .findOne({
+          createdAt: { $gte: startOfDay, $lt: endOfDay },
+        })
+        .sort({ dailyOrderId: -1 });
+
+      const dailyCount = lastOrder
+        ? parseInt(lastOrder?.dailyOrderId.toString().slice(-4) || 0) + 1
+        : 1;
+
+      const formattedCount = String(dailyCount).padStart(4, "0"); 
+      this.dailyOrderId = parseInt(`${day}${month}${year}${formattedCount}`);
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error generating dailyOrderId:", error);
+    next(error);
+  }
+});
 
 orderSchema.post("save", async function (doc, next) {
   try { 

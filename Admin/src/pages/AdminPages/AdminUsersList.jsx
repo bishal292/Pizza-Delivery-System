@@ -6,11 +6,13 @@ import {
   ADMIN_SEARCH_USER,
   ADMIN_UPDATE_USER,
 } from "../../utils/constant";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
 
 const AdminUsersList = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [users, setUsers] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,7 +24,7 @@ const AdminUsersList = () => {
   });
   const [confirmationUserId, setConfirmationUserId] = useState(null);
   const [limit, setLimit] = useState(25);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(new URLSearchParams(location.search).get("id") || "");
   const [hasMore, setHasMore] = useState(true);
   const [skip, setSkip] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -85,6 +87,14 @@ const AdminUsersList = () => {
 
     return () => clearTimeout(delayDebounceFn); // Cleanup the timeout on component unmount or query change
   }, [searchQuery]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get("id");
+    if (query && query !== searchQuery) {
+      setSearchQuery(query);
+    }
+  }, [location.search]);
 
   const handleDelete = async () => {
     try {
@@ -186,6 +196,17 @@ const AdminUsersList = () => {
     fetchUsers();
   };
 
+  const handleSearchChange = (e) => {
+    const query = e.target.value.trim();
+    setSearchQuery(query);
+    setSkip(0); // Reset skip when searching
+    if (query.length >= 3) {
+      navigate(`?id=${query}`);
+    } else {
+      navigate(location.pathname); // Remove query from URL if input is cleared
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
@@ -194,10 +215,7 @@ const AdminUsersList = () => {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value); // Trim input value
-              setSkip(0); // Reset skip when searching
-            }}
+            onChange={handleSearchChange}
             className="p-2 border border-gray-300 rounded"
             placeholder="Search by name or email"
           />

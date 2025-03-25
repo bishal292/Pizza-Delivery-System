@@ -183,10 +183,6 @@ export const getPizzas = async (req, res, next) => {
     const admin = await Admin.findById(userId);
     if (!admin) return res.status(404).send("No Such Admin Found");
 
-    // const pizzas = await Pizza.find()
-    //   .select('_id name description image price size base')
-    //   .populate('base','name').sort({ updatedAt: -1 });
-
     const pizzas = await Pizza.find().sort({ updatedAt: -1 });
     if (!pizzas) {
       return res.status(404).send("No Pizzas found");
@@ -240,6 +236,7 @@ export const imageUpload = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
 export const addPizza = async (req, res) => {
   try {
     const userId = req.userId;
@@ -458,20 +455,6 @@ export const deletePizza = async (req, res, next) => {
 
 /**
   ----------------------------------------------------------------------------------------
-  ---------------------------------- Orders Management ----------------------------------
-  ----------------------------------------------------------------------------------------
- */
-
-export const allOrders = async (req, res, next) => {};
-export const liveOrders = async (req, res, next) => {};
-export const updateOrderStatus = async (req, res, next) => {};
-export const CompletedOrders = async (req, res, next) => {};
-export const CancelledOrders = async (req, res, next) => {};
-export const PendingOrders = async (req, res, next) => {};
-export const OrderDetails = async (req, res, next) => {};
-
-/**
-  ----------------------------------------------------------------------------------------
   ---------------------------------- User Management ----------------------------------
   ----------------------------------------------------------------------------------------
  */
@@ -635,7 +618,9 @@ export const updateUser = async (req, res, next) => {
     if (name) updatedFields.name = name;
     if (email) updatedFields.email = email;
     if (password) updatedFields.password = password;
-    const updatedUser = await User.findByIdAndUpdate(id, updatedFields, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(id, updatedFields, {
+      new: true,
+    });
     res
       .status(200)
       .json({ message: "User updated successfully", user: updatedUser });
@@ -670,35 +655,256 @@ export const deleteUser = async (req, res, next) => {
   }
 };
 
-export const userOrders = async (req, res, next) => {
+/**
+  ----------------------------------------------------------------------------------------
+  ---------------------------------- Orders Management ----------------------------------
+  ----------------------------------------------------------------------------------------
+ */
+
+export const allOrders = async (req, res, next) => {
   try {
     const userId = req.userId;
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).send("No Such Admin Found");
-    const { id } = req.query;
-    if (!id || !isValidObjectId(id)) {
-      return res.status(400).send("Invalid User ID");
-    }
-    const orders = await Order.find({
-      userId: id,
-    }).sort({ updatedAt: -1 });
-    if (!orders) {
-      return res.status(404).send("No Orders found");
-    }
-    const formattedUserOrder = orders.map(async (order) => {
-      const foramattedItem = await getFormattedCartItems({ cart: order });
-      return {
-        orderId: order._id,
-        items: foramattedItem,
-        totalPrice: order.totalPrice,
-        status: order.status,
-        createdAt: order.createdAt,
-      };
-    });
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("No Such Admin Found");
 
-    res.status(200).send(formattedUserOrder);
+    const skip = parseInt(req.query.skip) || 0;
+    const limit = parseInt(req.query.limit) || 25;
+
+    const statusOrder = {
+      placed: 1,
+      preparing: 2,
+      prepared: 3,
+      pending: 4,
+      delivered: 5,
+      cancelled: 6,
+    };
+
+    const orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          statusPriority: {
+            $switch: {
+              branches: [
+                {
+                  case: { $eq: ["$status", "prepared"] },
+                  then: statusOrder.prepared,
+                },
+                {
+                  case: { $eq: ["$status", "preparing"] },
+                  then: statusOrder.preparing,
+                },
+                {
+                  case: { $eq: ["$status", "placed"] },
+                  then: statusOrder.placed,
+                },
+                {
+                  case: { $eq: ["$status", "pending"] },
+                  then: statusOrder.pending,
+                },
+                {
+                  case: { $eq: ["$status", "delivered"] },
+                  then: statusOrder.delivered,
+                },
+                {
+                  case: { $eq: ["$status", "cancelled"] },
+                  then: statusOrder.cancelled,
+                },
+              ],
+              default: 10,
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          statusPriority: 1, // Sort by status priority (ascending)
+          updatedAt: -1, // Then sort by updatedAt (descending)
+        },
+      },
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+
+    if (!orders.length) {
+      return res.status(204).send("No Orders found");
+    }
+
+    const formattedOrders = orders.map((order) => ({
+      _id: order._id,
+      userName: order.userDetails?.name,
+      userEmail: order.userDetails?.email,
+      tableNo: order.tableNo,
+      totalPrice: order.totalPrice,
+      totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      status: order.status,
+      dailyOrderId: order.dailyOrderId,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    }));
+
+    res.status(200).json(formattedOrders);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
+
+export const getOrderAccStatus = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const admin = Admin.findById(userId);
+    if (!admin) return res.status(404).send("No Such Admin Found");
+    const { status } = req.query;
+    const validStatus = [
+      "pending",
+      "preparing",
+      "prepared",
+      "completed",
+      "cancelled",
+    ];
+    if (!validStatus.includes(status)) {
+      return res.status(400).send("Invalid Status provided  ");
+    }
+    const orders = await Order.find({
+      status: status,
+    }).populate("userId", "name email");
+    if (!orders.length) {
+      return res.status(204).send("No Orders found with status: " + status);
+    }
+    const formattedOrders = orders.map((order) => ({
+      _id: order._id,
+      userName: order.userId.name,
+      userEmail: order.userId.email,
+      tableNo: order.tableNo,
+      totalPrice: order.totalPrice || 0,
+      totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      status: order.status,
+      dailyOrderId: order.dailyOrderId,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    }));
+    res.status(200).json(formattedOrders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const userOrders = async (req, res, next) => {};
+
+export const OrderDetails = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const userFound = await Admin.findById(userId);
+    if (!userFound) {
+      return res.status(404).json({ message: "Your Admin account not found." });
+    }
+    const { id: orderId } = req.query;
+    if (!orderId || !isValidObjectId(orderId)) {
+      return res.status(400).send("Order ID is required and must be valid");
+    }
+
+    const order = await Order.findById(orderId)
+      .populate({
+        path: "userId",
+        model: User,
+        select: "name email -_id",
+      })
+      .populate({
+        path: "items.pizza",
+        model: Pizza,
+        populate: [
+          { path: "base", model: Inventory, select: "name -_id" },
+          { path: "sauce", model: Inventory, select: "name -_id" },
+          { path: "cheese", model: Inventory, select: "name -_id" },
+          { path: "toppings", model: Inventory, select: "name -_id" },
+        ],
+      })
+      .populate({
+        path: "items.customizations.base",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.sauce",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.cheese",
+        model: Inventory,
+        select: "name -_id",
+      })
+      .populate({
+        path: "items.customizations.toppings",
+        model: Inventory,
+        select: "name -_id",
+      });
+
+    if (!order) {
+      return res.status(204).json({ message: "Order not found" });
+    }
+    order.user = order.userId;
+    order.userId = undefined;
+
+    res.status(200).json(order);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const updateOrderStatus = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const userFound = await Admin.findById(userId);
+    if (!userFound)
+      return res.status(400).send("Yoour Admin Account Not Found");
+    const { id: orderId } = req.query;
+    if (!orderId || !isValidObjectId(orderId)) {
+      return res.status(400).send("Invalid Order ID");
+    }
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(400).send("Order Not Found with given id");
+    const { status } = req.body;
+    const validStatus = ["preparing", "prepared", "completed", "cancelled"];
+    if (!status || !validStatus.includes(status)) {
+      return res
+        .status(400)
+        .send("Status is required and must be valid to update");
+    }
+    if(status === "completed" || status === "cancelled"){
+      return res.status(400).send("Cannot update the status of a completed or cancelled order.");
+    }
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+    if (!updatedOrder) return res.status(500).send("Error updating order");
+    res
+      .status(200)
+      .json({
+        message: "Order status updated successfully",
+        newStatus: updatedOrder.status,
+      });
+  } catch (error) {}
+};
+export const CompletedOrders = async (req, res, next) => {};
+
+export const CancelledOrders = async (req, res, next) => {};
+export const PendingOrders = async (req, res, next) => {};
