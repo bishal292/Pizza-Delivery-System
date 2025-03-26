@@ -76,7 +76,7 @@ export const sendEmailToAdmins = async (option) => {
     subject: option.subject,
     text: option.message,
   };
-  sendEmail(emailOptions);
+  await sendEmail(emailOptions);
 };
 
 /**

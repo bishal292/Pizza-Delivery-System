@@ -10,12 +10,90 @@ import { compare } from "bcrypt";
 
 export const dashboard = async (req, res, next) => {
   try {
-    // Todo
+    const userId = req.userId;
+    const admin = await Admin.findById(userId);
+    if (!admin) return res.status(404).send("No Such Admin Found");
+
+    const totalPizzas = await Pizza.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    const revenue = await Order.aggregate([
+      {
+        $match: {
+          status: { $nin: ["pending", "cancelled"] }, // Exclude pending and cancelled orders
+        },
+      },
+      {
+        $group: {
+          _id: {
+            isToday: {
+              $eq: [
+                { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                new Date().toISOString().split("T")[0],
+              ],
+            },
+          },
+          totalRevenue: { $sum: "$totalPrice" },
+          todayRevenue: {
+            $sum: {
+              $cond: [
+                {
+                  $eq: [
+                    {
+                      $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+                    },
+                    new Date().toISOString().split("T")[0],
+                  ],
+                },
+                "$totalPrice",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalRevenue" }, // Total revenue across all records
+          today: { $sum: "$todayRevenue" }, // Sum today's revenue
+        },
+      },
+    ]);
+    const totalUser = await User.countDocuments();
+    const lowStock = await Inventory.find({
+      $expr: { $lte: ["$stock", "$threshold"] },
+    }).countDocuments();
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const todayOrderCancelled = await Order.find({
+      status: "cancelled",
+    }).countDocuments();
+    
+    const todayOrderCount = await Order.find({
+      createdAt: { $gte: startOfDay },
+    }).countDocuments();
+
+    res.status(200).json({
+      "Total Orders": totalOrders,
+      "Today's Orders": todayOrderCount,
+      "Total Revenue": revenue[0]?.total || 0,
+      "Today's Revenue": revenue[0]?.today || 0,
+      "Total Pizzas": totalPizzas,
+      "Total Users": totalUser,
+      "Out Of Stock Items": lowStock,
+      "Today's Orders Cancelled": todayOrderCancelled,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
+
+export const revenueData = async (req, res, next) => {}
+
+export const orderData = async (req, res, next) => {}
+
 
 /**
   ----------------------------------------------------------------------------------------
@@ -28,7 +106,16 @@ export const inventory = async (req, res, next) => {
     const userId = req.userId;
     const admin = await Admin.findById(userId);
     if (!admin) return res.status(404).send("No Such Admin Found");
-    const inventory = await Inventory.find().sort({ updatedAt: -1 });
+    const inventory = await Inventory.aggregate([
+      {
+        $addFields: {
+          stockThresholdDifference: { $subtract: ["$stock", "$threshold"] },
+        },
+      },
+      {
+        $sort: { stockThresholdDifference: 1 },
+      },
+    ]);
     if (!inventory) {
       return res.status(404).send("Inventory is empty, add some products");
     }
@@ -899,7 +986,7 @@ export const userOrders = async (req, res, next) => {
         email: user.email,
         id: user._id,
       },
-      orders:formattedOrders,
+      orders: formattedOrders,
     });
   } catch (error) {}
 };

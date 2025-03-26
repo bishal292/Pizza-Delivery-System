@@ -34,6 +34,7 @@ inventorySchema.pre("save", function (next) {
   next();
 });
 
+
 inventorySchema.post("save", async function (doc, next) {
   try {
     if (doc.stock <= 0) {
@@ -77,7 +78,7 @@ inventorySchema.post("save", async function (doc, next) {
         threshold: doc.threshold,
       };
 
-      await sendEmailToAdmins({
+      const emailResult = await sendEmailToAdmins({
         subject: "Low Stock Alert",
         message: `The following item is running low on stock:\n\n${JSON.stringify(
           lowStockItem,
@@ -86,20 +87,82 @@ inventorySchema.post("save", async function (doc, next) {
         )}`,
       });
 
-      console.log(`Low stock alert email sent for item '${doc.name}'`);
+      if (!emailResult) {
+        console.warn(`No recipients defined for low stock alert email for item '${doc.name}'`);
+      } else {
+        console.log(`Low stock alert email sent for item '${doc.name}'`);
+      }
 
       // Emit socket event to admins
-      const adminSocketIds = [...io.adminSocketMap.values()]; // Get all admin socket IDs
-      adminSocketIds.forEach((socketId) => {
-        io.to(socketId).emit("lowStockAlert", lowStockItem);
-      });
+      if (io.adminSocketMap && typeof io.adminSocketMap.values === "function") {
+        const adminSocketIds = [...io.adminSocketMap.values()]; // Get all admin socket IDs
+        adminSocketIds.forEach((socketId) => {
+          io.to(socketId).emit("lowStockAlert", lowStockItem);
+        });
 
-      console.log(`Low stock alert emitted for item '${doc.name}'`);
+        console.log(`Low stock alert emitted for item '${doc.name}'`);
+      } else {
+        console.warn("Socket map is not initialized or invalid");
+      }
     }
 
     next();
   } catch (error) {
     console.error("Error in inventory post-save middleware:", error);
+    next(error);
+  }
+});
+
+inventorySchema.pre("findOneAndDelete", async function (next) {
+  try {
+    const doc = await this.model.findOne(this.getFilter());
+    if (!doc) {
+      console.warn("No document found for deletion");
+      return next();
+    }
+
+    console.log(`Inventory item '${doc.name}' is being deleted`);
+
+    const pizzasToUpdate = await Pizza.find({
+      $or: [
+        { base: doc._id },
+        { sauce: doc._id },
+        { cheese: doc._id },
+        { toppings: doc._id },
+      ],
+    });
+
+    if (pizzasToUpdate.length > 0) {
+      const bulkOps = pizzasToUpdate.map((pizza) => ({
+        updateOne: {
+          filter: { _id: pizza._id },
+          update: {
+            $pull: {
+              base: doc._id,
+              sauce: doc._id,
+              cheese: doc._id,
+              toppings: doc._id,
+            },
+          },
+        },
+      }));
+
+      await Pizza.bulkWrite(bulkOps);
+      console.log(`Removed item '${doc.name}' from ${pizzasToUpdate.length} pizzas`);
+    } else {
+      console.log(`No pizzas found using item '${doc.name}'`);
+    }
+
+    const Order = mongoose.model("Order");
+    const ordersToUpdate = await Order.updateMany(
+      { "customizations.inventoryItem": doc._id },
+      { $pull: { customizations: { inventoryItem: doc._id } } }
+    );
+    console.log(`Removed item '${doc.name}' from ${ordersToUpdate.modifiedCount} orders`);
+
+    next();
+  } catch (error) {
+    console.error("Error in inventory pre-remove middleware:", error);
     next(error);
   }
 });
