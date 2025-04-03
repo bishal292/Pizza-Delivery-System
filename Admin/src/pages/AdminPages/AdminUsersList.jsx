@@ -9,6 +9,7 @@ import {
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
+import { Mail } from "lucide-react";
 
 const AdminUsersList = () => {
   const navigate = useNavigate();
@@ -59,8 +60,6 @@ const AdminUsersList = () => {
       const response = await apiClient.get(ADMIN_SEARCH_USER, {
         params: { q: searchQuery },
       });
-      console.log("Query : ", searchQuery);
-      console.log(response.data);
       if (response.data) {
         setSearchResults(response.data);
       } else {
@@ -168,9 +167,6 @@ const AdminUsersList = () => {
         { withCredentials: true }
       );
       if (response.status === 200 && response.data?.user) {
-        console.log(response);
-        console.log(response.data);
-        console.log(response.data.user);
         setUsers(
           users.map((user) => {
             if (user.id === editUser.id) {
@@ -328,7 +324,7 @@ const AdminUsersList = () => {
               <tr key={user.id} className="border-b border-gray-300">
                 <td className="p-3 text-center">{index + 1}</td>
                 <td className="p-3 text-center">{user.name}</td>
-                <td className="p-3 text-center">{user.email}</td>
+                <td className="text-blue-500 p-3 text-center" ><a href={`mailto:${user.email}`} >{user.email}</a></td>
                 <td className="p-3 text-center">
                   {user.totalOrder > 0 ? (
                     <Link to={`/admin/user/orders/${user.id}`}

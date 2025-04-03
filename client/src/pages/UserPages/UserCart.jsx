@@ -162,7 +162,6 @@ const UserCart = () => {
       if (response.status === 201) {
         const order = response.data.order;
         await openRazorPayScreenUI(userInfo, order);
-        
         toast.success(response.data.message);
         clearCart();
       }

@@ -1,3 +1,4 @@
+import DashBoardCharts from "@/components/DashBoardCharts";
 import { apiClient } from "@/utils/api-client";
 import { ADMIN_DASHBOARD } from "@/utils/constant";
 import React, { useEffect, useState } from "react";
@@ -22,13 +23,11 @@ const Dashboard = () => {
         const response = await apiClient.get(ADMIN_DASHBOARD, {
           withCredentials: true,
         });
-        console.log(response);
         if (response.status === 200) {
-          console.log("DATA : ", response.data);
           setResponseData(response.data);
         }
       } catch (error) {
-        console.log("Error fetching data from the server: ", error);
+        console.error("Error fetching data from the server: ", error);
       }
     };
     fetchDashBoardData();
@@ -80,8 +79,8 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold text-gray-700 mb-6">
           Analytics and Insights
         </h2>
-        <div className="h-96 flex justify-center items-center text-gray-400">
-          <p>Charts and graphs will be displayed here...</p>
+        <div className="flex justify-center items-center text-black p-4">
+          <DashBoardCharts />
         </div>
       </div>
     </div>

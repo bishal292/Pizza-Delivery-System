@@ -66,7 +66,7 @@ export async function openRazorPayScreenUI(userInfo,order) {
     }
 
     const options = {
-      key_id: razorpayKey,
+      key: razorpayKey,
       amount: order?.amount || 0,
       currency: order?.currency || "INR",
       name: "Pizzeria",

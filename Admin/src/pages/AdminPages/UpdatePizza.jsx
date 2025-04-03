@@ -9,7 +9,7 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
     name: pizza?.name || "",
     image: Pizza?.image || null,
     description: pizza?.description || "",
-    size: pizza?.size || "",
+    size: pizza?.size._id || "",
     base: pizza?.base || "",
     sauce: pizza?.sauce || [],
     cheese: pizza?.cheese || [],
@@ -127,10 +127,13 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
               <option value="" disabled>
                 Select one of the item
               </option>
-              <option value="Regular">Regular</option>
-              <option value="Medium">Medium</option>
-              <option value="Large">Large</option>
-              <option value="Monster">Monster</option>
+              {inventory
+                .filter((item) => item.category === "baseSize")
+                .map((item) => (
+                  <option key={item._id} value={item._id}>
+                    {item.name}
+                  </option>
+                ))}
             </select>
           </div>
           <div>

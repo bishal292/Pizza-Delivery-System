@@ -5,7 +5,7 @@ const pizzaSchema = new mongoose.Schema({
   name: { type: String, required: true },
   image: { type: String, required: true },
   description: { type: String, required: true },
-  size: { type: String, enum: ['Regular', 'Medium', 'Large'], required: true },
+  size: { type: mongoose.Schema.Types.ObjectId ,ref:'Inventory', required: true },
   base: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory', required: true },
   sauce: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory'}],
   cheese: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' }],

@@ -50,12 +50,13 @@ const AdminOrders = () => {
       const response = await apiClient.get(
         `${ADMIN_ORDER_FILTERED}?status=${status}`
       );
+      console.log("Filtered Orders : ", response);
       if (response.status === 200) {
         setOrders(response.data);
         toast.success("Orders fetched successfully with Status : " + status);
       }
     } catch (error) {
-      console.log("Error Occured : ", error);
+      console.error("Error Occured : ", error);
       toast.error(error.response?.data || "Some Unknown Error Occured");
     } finally {
       setLoading(false);
@@ -106,18 +107,7 @@ const AdminOrders = () => {
             order._id === orderId ? { ...order, status: newStatus } : order
           )
         );
-        toast.success(
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">
-              {response.data.message || "Order status updated successfully"}
-            </span>
-            <button
-              onClick={() => window.location.reload()}
-              className="ml-4 px-3 py-1 text-white bg-blue-500 hover:bg-blue-600 rounded-lg shadow-md transition-all"
-            >
-              Refresh
-            </button>
-          </div>,
+        toast.success(response.data?.message || "Order status updated successfully",
           {
             duration: 5000,
             style: {
@@ -132,7 +122,7 @@ const AdminOrders = () => {
     } catch (error) {
       console.error(error);
       toast.error(
-        error.response?.data?.message || "Some Unknown Error Occurred"
+        error.response?.data?.message || error.response?.data || "Some Unknown Error Occurred"
       );
     } finally {
       setIsSubmitting(false);
@@ -163,8 +153,9 @@ const AdminOrders = () => {
             >
               <option value="">All</option>
               <option value="pending">Pending</option>
-              <option value="preparing">Pending</option>
-              <option value="prepared">Completed</option>
+              <option value="placed">Placed</option>
+              <option value="preparing">Preparing</option>
+              <option value="prepared">Prepared</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>

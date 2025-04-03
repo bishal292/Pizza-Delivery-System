@@ -1,0 +1,88 @@
+[{
+  "_id": {
+    "$oid": "67e5c3e31b52888561408e47"
+  },
+  "name": "Chicken Pepperoni",
+  "image": "1743111139066-Chicken Pepperoni.webp",
+  "description": "pizza flavoured with chicken and pepperoni",
+  "size": {
+    "$oid": "67e5bc5c4a1507f3ccc04e01"
+  },
+  "base": {
+    "$oid": "67e5bc5c4a1507f3ccc04e06"
+  },
+  "sauce": [
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e16"
+    },
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e18"
+    }
+  ],
+  "cheese": [
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e10"
+    },
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e0c"
+    }
+  ],
+  "toppings": [
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e20"
+    },
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e1b"
+    }
+  ],
+  "price": 499,
+  "status": "available",
+  "createdAt": {
+    "$date": "2025-03-27T21:32:19.113Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-27T21:32:19.113Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e5cbdad2fc8e1f78b855c5"
+  },
+  "name": "Fiery Jalapeno & Paprika",
+  "image": "1743113178079-Fiery Jalapeno & Paprika.jpg",
+  "description": "Fiery Jalapeno & Paprika",
+  "size": {
+    "$oid": "67e5bc5c4a1507f3ccc04e01"
+  },
+  "base": {
+    "$oid": "67e5bc5c4a1507f3ccc04e08"
+  },
+  "sauce": [
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e15"
+    }
+  ],
+  "cheese": [
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e0e"
+    }
+  ],
+  "toppings": [
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e1e"
+    },
+    {
+      "$oid": "67e5bc5c4a1507f3ccc04e1b"
+    }
+  ],
+  "price": 209,
+  "status": "available",
+  "createdAt": {
+    "$date": "2025-03-27T22:06:18.165Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-27T22:06:18.165Z"
+  },
+  "__v": 0
+}]

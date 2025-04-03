@@ -2,6 +2,7 @@ import { useAppStore } from "@/Store/store";
 import { HOST } from "@/utils/constant";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import { toast } from "sonner";
 
 const SocketContext = createContext(null);
 
@@ -28,6 +29,32 @@ export const SocketProvider = ({ children }) => {
       console.log("Disconnected from socket server");
       setIsConnected(false);
     });
+    socket.current.on("new-order",(data)=>{
+      toast.success(
+        <div className="flex flex-col gap-2">
+          <span className="font-bold">New Order with OrderId {data?.dailyOrderId} Placed</span>
+          {window.location.pathname === "/admin/orders" ? (
+            <button
+              onClick={() => {
+                window.location.reload();
+              }}
+              className="text-sm font-bold text-blue-700"
+            >
+              Refresh
+            </button>
+          ) : (
+            <a href={`/admin/order/${data?.id}`} className="text-sm">
+              View
+            </a>
+          )}
+        </div>,
+        {
+          position: "top-right",
+          duration: 5000,
+          description: `New Order placed with id ${data?.dailyOrderId}`,
+        }
+      );
+    } )
 
     return () => {
       socket.current.disconnect();

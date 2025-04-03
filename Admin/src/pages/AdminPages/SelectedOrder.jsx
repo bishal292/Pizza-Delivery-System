@@ -28,7 +28,6 @@ const OrderDetails = () => {
           `${ADMIN_ORDER_DETAILS}?id=${orderId}`,
           { withCredentials: true }
         );
-        console.log(response.data);
         if (response.status === 200) {
           setOrderDetails(response.data.items);
           setTotalPrice(response.data.totalPrice);
@@ -61,7 +60,6 @@ const OrderDetails = () => {
         { status: newStatus },
         { withCredentials: true }
       );
-      console.log(response);
       if (response.status === 200) {
         setStatus(newStatus);
         toast.success(
@@ -69,7 +67,7 @@ const OrderDetails = () => {
         );
       }
     } catch {
-      console.log(error);
+      console.error(error);
       toast.error(
         error.response?.data?.message ||
           error.response?.data ||

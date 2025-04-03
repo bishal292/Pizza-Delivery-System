@@ -27,8 +27,8 @@ const AdminPizza = () => {
     name: "",
     image: null,
     description: "",
-    size: "Regular",
     base: "",
+    size:"",
     sauce: [],
     cheese: [],
     toppings: [],
@@ -130,7 +130,7 @@ const AdminPizza = () => {
           name: "",
           image: null,
           description: "",
-          size: "Regular",
+          size: "",
           base: "",
           sauce: [],
           cheese: [],
@@ -224,7 +224,7 @@ const AdminPizza = () => {
                 </h2>
                 <p className="text-gray-600">{pizza.description}</p>
                 <p className="text-gray-700 font-bold mt-2">
-                  Size: {pizza.size}
+                  Size: {pizza?.size?.name}
                 </p>
                 <p >
                   Price: <span className="text-green-600 font-bold">₹ {pizza.price}</span>
@@ -306,10 +306,13 @@ const AdminPizza = () => {
                   <option value="" disabled>
                     Select one of the item
                   </option>
-                  <option value="Regular">Regular</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Large">Large</option>
-                  <option value="Large">Monster</option>
+                  {inventory
+                    .filter((item) => item.category === "baseSize")
+                    .map((item) => (
+                      <option key={item._id} value={item._id}>
+                        {item.name}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div>

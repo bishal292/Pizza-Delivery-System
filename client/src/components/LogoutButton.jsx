@@ -17,13 +17,12 @@ const LogoutButton = () => {
           withCredentials: true,
         }
       );
-      console.log(response);
       if (response.status === 200) {
         toast.warning("Logged Out Successfully");
         setUserInfo(null);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setIsLoggingOut(false);
     }

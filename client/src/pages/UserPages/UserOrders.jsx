@@ -28,7 +28,6 @@ const UserOrders = () => {
         const response = await apiClient.get(USER_GET_ORDERS, {
           withCredentials: true,
         });
-        console.log(response);
         if (response.status === 200) {
           setOrders(response.data);
         }else{
@@ -51,7 +50,6 @@ const UserOrders = () => {
       const response = await apiClient.get(`${USER_CANCEL_ORDER}?id=${orderId}`, {
         withCredentials: true,
       });
-      console.log(response);
       if (response.status === 200) {
         toast.success(response.data)
         setOrders((orders) =>
@@ -138,7 +136,7 @@ const UserOrders = () => {
 
                 <div className="p-4">
                   <h2 className="text-lg font-bold text-gray-800 truncate">
-                    Order ID: {order._id}
+                    Order ID: {order.dailyOrderId}
                   </h2>
 
                   <div className="mt-4 space-y-2">

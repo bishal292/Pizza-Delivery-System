@@ -18,7 +18,6 @@ const PizzaDetails = () => {
                 const response = await apiClient.get(`${ADMIN_GET_PIZZA_DETAILS}?id=${id}`, {
                     withCredentials: true,
                 });
-                console.log(response)
                 if (response.status === 200) {
                     setPizza(response.data);
                 }
@@ -65,7 +64,7 @@ const PizzaDetails = () => {
                 className="w-full h-64 object-contain mb-4"
             />
             <p>{pizza.description}</p>
-            <p>Size: {pizza.size}</p>
+            <p>Size: {pizza.size?.name}</p>
             <p>Price: ${pizza.price}</p>
             <h2 className="text-xl font-semibold mt-4">Ingredients:</h2>
             <ul>

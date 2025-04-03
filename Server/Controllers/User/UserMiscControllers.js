@@ -16,13 +16,13 @@ export const getPizzas = async (req, res, next) => {
   try {
     const pizzas = await Pizza.find({ status: "available" })
       .sort({ updatedAt: -1 })
-      .populate("base sauce cheese toppings", "name price");
+      .populate("base sauce cheese toppings size", "name price");
     if (!pizzas) {
       return res.status(404).send("No Pizzas found");
     }
     res.status(200).send(pizzas);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -127,6 +127,7 @@ export const getCart = async (req, res, next) => {
         path: "items.pizza",
         model: Pizza,
         populate: [
+          {path: "size", model: Inventory, select: "name -_id"},
           { path: "base", model: Inventory, select: "name -_id" },
           { path: "sauce", model: Inventory, select: "name -_id" },
           { path: "cheese", model: Inventory, select: "name -_id" },
@@ -206,7 +207,7 @@ export const removeFromCart = async (req, res, next) => {
       return res.status(404).send("Item not found in cart");
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -224,7 +225,7 @@ export const clearCart = async (req, res, next) => {
 
     res.status(200).json({ message: "Cart cleared" });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -250,7 +251,7 @@ export const getOptions = async (req, res, next) => {
 
     res.status(200).json({ bases, sauces, cheeses, toppings });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -352,13 +353,14 @@ export const placeOrder = async (req, res, next) => {
       });
     }
 
-    const order_Razor = await createPayment(cart.totalPrice);
-
+    const dailyOrderId = await Order.generateDailyOrderId();
+    const order_Razor = await createPayment(cart.totalPrice,dailyOrderId);
     const order = new Order({
       userId,
       items: cart.items,
       totalPrice: cart.totalPrice,
-      orderId: order_Razor.success ? order_Razor.order.id : "RazorPay Order ID",
+      dailyOrderId,
+      orderId: order_Razor?.success ? order_Razor.order.id : dailyOrderId,
       tableNo,
     });
     await order.save();
@@ -373,7 +375,7 @@ export const placeOrder = async (req, res, next) => {
         .status(201)
         .json({
           message: "Failed to clear cart but created Order",
-          order: order_Razor.order || [],
+          order: order_Razor?.order || [],
           _id: order._id,
         });
     }
@@ -381,8 +383,9 @@ export const placeOrder = async (req, res, next) => {
     res.status(201).json({
       _id: order._id,
       message: "Order placed successfully",
-      order: order_Razor.order || [],
+      order: order_Razor?.order || [],
     });
+    
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Internal Server Error");
@@ -448,6 +451,7 @@ export const getOrders = async (req, res, next) => {
       totalQuantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
       image: order.items[0]?.pizza?.image || null,
       orderId: order.orderId || null,
+      dailyOrderId: order.dailyOrderId,
       status: order.status,
       tableNo: order.tableNo,
       createdAt: order.createdAt,
@@ -596,7 +600,7 @@ export const completePayment = async (req, res, next) => {
     const orderStatus = await checkOrderStatus(order.orderId);
 
     if (!orderStatus.success) {
-      const createorderpay = await createPayment(order.totalPrice);
+      const createorderpay = await createPayment(order.totalPrice,order.dailyOrderId);
       if (!createorderpay.success) {
         return res
           .status(500)

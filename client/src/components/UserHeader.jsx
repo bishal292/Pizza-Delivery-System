@@ -36,6 +36,7 @@ const UserHeader = () => {
       >
         <NavLink
           to="/pizzeria/home"
+          onClick={() => setMenuOpen(false)}
           className={({ isActive }) =>
             isActive
               ? "text-yellow-500"
@@ -46,6 +47,7 @@ const UserHeader = () => {
         </NavLink>
         <NavLink
           to="/pizzeria/cart"
+          onClick={() => setMenuOpen(false)}
           className={({ isActive }) =>
             isActive
               ? "text-yellow-500"
@@ -56,6 +58,7 @@ const UserHeader = () => {
         </NavLink>
         <NavLink
           to="/pizzeria/orders"
+          onClick={() => setMenuOpen(false)}
           className={({ isActive }) =>
             isActive
               ? "text-yellow-500"

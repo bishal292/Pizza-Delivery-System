@@ -16,6 +16,7 @@ const OrderDetails = () => {
   const [genOrderId, setGenOrderId] = useState("");
   const [tableNumber, setTableNumber] = useState(null);
   const [status, setStatus] = useState("");
+  const [dailyOrderId, setDailyOrderId] = useState(null)
   const [isSubmitting,setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ const OrderDetails = () => {
           setOrderDetails(response.data.items);
           setTotalPrice(response.data.totalPrice);
           setGenOrderId(response.data.orderId);
+          setDailyOrderId(response.data?.dailyOrderId)
           setTableNumber(response.data.tableNo);
           setStatus(response.data.status);
         }
@@ -49,7 +51,6 @@ const OrderDetails = () => {
       const response = await apiClient.get(`${USER_CANCEL_ORDER}?id=${orderId}`, {
         withCredentials: true,
       });
-      console.log(response);
       if (response.status === 200) {
         toast.success(response.data)
         setStatus("cancelled");
@@ -70,7 +71,7 @@ const OrderDetails = () => {
 
   return (
     <div className="p-6 font-sans">
-      <h1 className="text-2xl font-bold mb-4">Your Order Details</h1>
+      <h1 className="text-2xl font-bold mb-4">Your Order Details {dailyOrderId && <> with id <span className=" text-orange-600 " >{dailyOrderId}</span> </> } </h1>
 
       {/* Order Info */}
       <div className="mb-6 p-4 border rounded-lg shadow-md bg-gray-50">

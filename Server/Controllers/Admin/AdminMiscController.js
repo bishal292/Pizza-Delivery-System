@@ -8,6 +8,8 @@ import { Order } from "../../db/models/Orders.js";
 import { getFormattedCartItems } from "../../utils/util-functions.js";
 import { compare } from "bcrypt";
 
+// Admin Dashboard
+// SUGGESTION: Razorpay method to get total revenue for lifetime and today's can be used for actual earning's data via online
 export const dashboard = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -69,7 +71,7 @@ export const dashboard = async (req, res, next) => {
     const todayOrderCancelled = await Order.find({
       status: "cancelled",
     }).countDocuments();
-    
+
     const todayOrderCount = await Order.find({
       createdAt: { $gte: startOfDay },
     }).countDocuments();
@@ -85,15 +87,14 @@ export const dashboard = async (req, res, next) => {
       "Today's Orders Cancelled": todayOrderCancelled,
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
 
-export const revenueData = async (req, res, next) => {}
+export const revenueData = async (req, res, next) => {};
 
-export const orderData = async (req, res, next) => {}
-
+export const orderData = async (req, res, next) => {};
 
 /**
   ----------------------------------------------------------------------------------------
@@ -121,7 +122,7 @@ export const inventory = async (req, res, next) => {
     }
     res.status(200).send(inventory);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -141,7 +142,9 @@ export const addProduct = async (req, res, next) => {
     if (product) {
       return res.status(400).send("Product already exists, try updating it");
     }
-    if (!["cheese", "sauce", "base", "topping"].includes(category)) {
+    if (
+      !["cheese", "sauce", "base", "topping", "baseSize"].includes(category)
+    ) {
       return res.status(400).send("Invalid Category");
     }
     if (!["veg", "non-veg"].includes(type)) {
@@ -164,7 +167,7 @@ export const addProduct = async (req, res, next) => {
       .status(201)
       .json({ message: "Product added successfully", product: savedProduct });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -225,7 +228,7 @@ export const updateProduct = async (req, res, next) => {
       product: updatedProduct,
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -253,7 +256,7 @@ export const deleteProduct = async (req, res, next) => {
       product: deletedProduct,
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -270,13 +273,15 @@ export const getPizzas = async (req, res, next) => {
     const admin = await Admin.findById(userId);
     if (!admin) return res.status(404).send("No Such Admin Found");
 
-    const pizzas = await Pizza.find().sort({ updatedAt: -1 });
+    const pizzas = await Pizza.find()
+      .populate("size", "name")
+      .sort({ updatedAt: -1 });
     if (!pizzas) {
       return res.status(404).send("No Pizzas found");
     }
     res.status(200).send(pizzas);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -292,7 +297,7 @@ export const getPizzaDetails = async (req, res, next) => {
     }
 
     const pizza = await Pizza.findById(id).populate(
-      "base sauce cheese toppings",
+      "base size sauce cheese toppings",
       "name"
     );
     if (!pizza) {
@@ -301,7 +306,7 @@ export const getPizzaDetails = async (req, res, next) => {
 
     res.status(200).json(pizza);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -319,7 +324,7 @@ export const imageUpload = async (req, res, next) => {
       imageUrl: req.file.filename,
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -333,7 +338,7 @@ export const addPizza = async (req, res) => {
       name,
       image,
       description,
-      size,
+      size: baseSize,
       base,
       sauce,
       cheese,
@@ -341,15 +346,12 @@ export const addPizza = async (req, res) => {
       price,
     } = req.body;
 
-    if (!name || !image || !description || !size || !base || !price) {
+    if (!name || !image || !description || !baseSize || !base || !price) {
       return res
         .status(400)
         .send(
           "Please fill all required fields : name, image, description, size, base, price"
         );
-    }
-    if (!["Regular", "Medium", "Large", "Monster"].includes(size)) {
-      return res.status(400).send("Invalid Size");
     }
     if (isNaN(price)) {
       return res.status(400).send("Price must be a number");
@@ -365,6 +367,9 @@ export const addPizza = async (req, res) => {
       return true;
     };
 
+    if (!(await validateInventoryItems([baseSize], "baseSize"))) {
+      return res.status(400).send("Invalid Base");
+    }
     if (!(await validateInventoryItems([base], "base"))) {
       return res.status(400).send("Invalid Base");
     }
@@ -379,7 +384,7 @@ export const addPizza = async (req, res) => {
     }
 
     // Check if pizza with same name and identical base already exists
-    const existingPizza = await Pizza.findOne({ name, size, base });
+    const existingPizza = await Pizza.findOne({ name, size: baseSize, base });
 
     if (existingPizza) {
       return res
@@ -393,7 +398,7 @@ export const addPizza = async (req, res) => {
       name,
       image,
       description,
-      size,
+      size: baseSize,
       base,
       sauce,
       cheese,
@@ -404,11 +409,10 @@ export const addPizza = async (req, res) => {
     if (!savedPizza) {
       return res.status(500).send("Error saving pizza");
     }
-    res
-      .status(201)
-      .json({ message: "Pizza added successfully", pizza: savedPizza });
+    const pizza = await Pizza.findById(savedPizza._id).populate("size", "name");
+    res.status(201).json({ message: "Pizza added successfully", pizza });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -456,10 +460,6 @@ export const updatePizza = async (req, res, next) => {
         .send("Some changes in any fields are required to perform updation");
     }
 
-    if (size && !["Regular", "Medium", "Large", "Monster"].includes(size)) {
-      return res.status(400).send("Invalid Size");
-    }
-
     if (price && isNaN(price)) {
       return res.status(400).send("Price must be a number");
     }
@@ -474,6 +474,9 @@ export const updatePizza = async (req, res, next) => {
       return true;
     };
 
+    if (size && !(await validateInventoryItems([size], "baseSize"))) {
+      return res.status(400).send("Invalid Base");
+    }
     if (base && !(await validateInventoryItems([base], "base"))) {
       return res.status(400).send("Invalid Base");
     }
@@ -508,7 +511,7 @@ export const updatePizza = async (req, res, next) => {
       .status(200)
       .json({ message: "Pizza updated successfully", pizza: updatedPizza });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -535,7 +538,7 @@ export const deletePizza = async (req, res, next) => {
       .status(200)
       .json({ message: "Pizza deleted successfully", pizza: deletedPizza });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -581,7 +584,7 @@ export const getAllUsers = async (req, res, next) => {
 
     res.status(200).send(usersWithDetails);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -610,7 +613,7 @@ export const getUserCart = async (req, res, next) => {
       updatedAt: cart.updatedAt,
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -655,7 +658,7 @@ export const getUserWithNameOrEmail = async (req, res, next) => {
 
     res.status(200).send(usersWithDetails);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -712,7 +715,7 @@ export const updateUser = async (req, res, next) => {
       .status(200)
       .json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -737,7 +740,7 @@ export const deleteUser = async (req, res, next) => {
     }
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -845,7 +848,7 @@ export const allOrders = async (req, res, next) => {
 
     res.status(200).json(formattedOrders);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -858,6 +861,7 @@ export const getOrderAccStatus = async (req, res, next) => {
     const { status } = req.query;
     const validStatus = [
       "pending",
+      "placed",
       "preparing",
       "prepared",
       "completed",
@@ -869,6 +873,7 @@ export const getOrderAccStatus = async (req, res, next) => {
     const orders = await Order.find({
       status: status,
     }).populate("userId", "name email");
+
     if (!orders.length) {
       return res.status(204).send("No Orders found with status: " + status);
     }
@@ -886,7 +891,7 @@ export const getOrderAccStatus = async (req, res, next) => {
     }));
     res.status(200).json(formattedOrders);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -1066,13 +1071,19 @@ export const updateOrderStatus = async (req, res, next) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(400).send("Order Not Found with given id");
     const { status } = req.body;
-    const validStatus = ["preparing", "prepared", "completed", "cancelled"];
+    const validStatus = [
+      "placed",
+      "preparing",
+      "prepared",
+      "completed",
+      "cancelled",
+    ];
     if (!status || !validStatus.includes(status)) {
       return res
         .status(400)
         .send("Status is required and must be valid to update");
     }
-    if (status === "completed" || status === "cancelled") {
+    if (order.status === "completed" || order.status === "cancelled") {
       return res
         .status(400)
         .send("Cannot update the status of a completed or cancelled order.");

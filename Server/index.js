@@ -20,11 +20,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-// Serve static files from the 'uploads' directory
-app.use("/pizza-image", express.static("uploads"));
-
-export const server = http.createServer(app);
-
 // Cors for cross connection between frontend and backend.
 app.use(
   cors({
@@ -43,6 +38,7 @@ app.use(
     methods: ["GET", "POST", "PATCH", "DELETE"],
   })
 );
+app.use("/pizza-image", express.static("uploads"));
 
 app.get("/api/v1/auth/get-user-info", verifyToken, getUserInfo);
 
@@ -54,8 +50,11 @@ app.get("/", (req, res, next) => {
   next();
 });
 
+export const server = http.createServer(app);
+
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
 
 setupSocket(server);

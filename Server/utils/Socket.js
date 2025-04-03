@@ -4,8 +4,14 @@ import { Admin } from "../db/models/AdminModel.js";
 import mongoose from "mongoose"; // Import mongoose to validate ObjectId
 
 let io; // Declare the io instance
+export const adminSocketMap = new Map();
+export const userSocketMap = new Map();
 
 const setupSocket = (server) => {
+  if (io) {
+    // If io is already defined, return it without creating a new instance
+    return io;
+  }
   io = new SocketIOServer(server, {
     cors: {
       origin: (origin, callback) => {
@@ -23,16 +29,17 @@ const setupSocket = (server) => {
     },
   });
 
-  const userSocketMap = new Map();
-  const adminSocketMap = new Map();
-
   const disconnectUser = (socket) => {
-    const userId = [...userSocketMap.entries()].find(([key, value]) => value === socket.id)?.[0];
+    const userId = [...userSocketMap.entries()].find(
+      ([key, value]) => value === socket.id
+    )?.[0];
     if (userId) {
       userSocketMap.delete(userId);
       console.log(`User disconnected: ${userId}`);
     } else {
-      const adminId = [...adminSocketMap.entries()].find(([key, value]) => value === socket.id)?.[0];
+      const adminId = [...adminSocketMap.entries()].find(
+        ([key, value]) => value === socket.id
+      )?.[0];
       if (adminId) {
         adminSocketMap.delete(adminId);
         console.log(`Admin disconnected: ${adminId}`);
@@ -81,7 +88,10 @@ const setupSocket = (server) => {
           return callback({ status: "error", error: "Pizza ID mismatch" });
         }
         if (item.quantity >= 10) {
-          return callback({ status: "error", error: "Maximum quantity reached" });
+          return callback({
+            status: "error",
+            error: "Maximum quantity reached",
+          });
         }
         item.quantity += 1;
         item.finalPrice = item.price * item.quantity;
@@ -107,7 +117,10 @@ const setupSocket = (server) => {
           return callback({ status: "error", error: "Pizza ID mismatch" });
         }
         if (item.quantity <= 1) {
-          return callback({ status: "error", error: "Minimum quantity reached" });
+          return callback({
+            status: "error",
+            error: "Minimum quantity reached",
+          });
         }
         item.quantity -= 1;
         item.finalPrice = item.price * item.quantity;

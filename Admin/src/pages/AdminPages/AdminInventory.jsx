@@ -36,19 +36,18 @@ const AdminInventory = () => {
         const response = await apiClient.get(ADMIN_INVENTORY, {
           withCredentials: true,
         });
-        console.log(response);
         if (response.status === 200) {
           setInventory(response.data);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         const status = error.response.status;
         if (status === 404) {
-          console.log("Inventory is Empty");
+          toast.error("Inventory is Empty");
         } else if (status === 500) {
-          console.log("Internal Server Error");
+          toast.error("Internal Server Error");
         } else {
-          console.log("Unknown Error Try Again later");
+          toast.error("Unknown Error Try Again later");
         }
         setInventory([]);
       } finally {
@@ -72,7 +71,6 @@ const AdminInventory = () => {
     setIsSubmitting(true);
     try {
       newItem.name = newItem.name.trim();
-      console.log(newItem);
       if (
         newItem.name.length <= 3 ||
         !newItem.category ||
@@ -99,7 +97,7 @@ const AdminInventory = () => {
         });
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error.response.data?.message || error.response.data);
     } finally {
       setIsPopupOpen(false);
@@ -107,7 +105,7 @@ const AdminInventory = () => {
     }
     // setInventory([...inventory, newItem]);
   };
-  
+
   const deleteItem = async (id) => {
     setIsSubmitting(true);
     try {
@@ -121,7 +119,7 @@ const AdminInventory = () => {
         setInventory(inventory.filter((item) => item._id !== id));
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       const status = error.response.status;
       if (status === 404) {
         toast.error("Product not found");
@@ -149,9 +147,12 @@ const AdminInventory = () => {
     try {
       // Checks if any changes are made or not
       if (
-        editableItem.price === inventory.find((item) => item._id === id).price &&
-        editableItem.stock === inventory.find((item) => item._id === id).stock &&
-        editableItem.threshold === inventory.find((item) => item._id === id).threshold &&
+        editableItem.price ===
+          inventory.find((item) => item._id === id).price &&
+        editableItem.stock ===
+          inventory.find((item) => item._id === id).stock &&
+        editableItem.threshold ===
+          inventory.find((item) => item._id === id).threshold &&
         editableItem.type === inventory.find((item) => item._id === id).type
       ) {
         toast.error("No changes detected");
@@ -166,11 +167,10 @@ const AdminInventory = () => {
           price: editableItem.price,
           stock: editableItem.stock,
           threshold: editableItem.threshold,
-          type: editableItem.type
+          type: editableItem.type,
         },
         { withCredentials: true }
       );
-      console.log(response);
       if (response.status === 200) {
         toast.success("Item Updated Successfully");
         setInventory(
@@ -178,7 +178,7 @@ const AdminInventory = () => {
         );
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error.response.data?.message || error.response.data);
     } finally {
       setIsSubmitting(false);
@@ -189,6 +189,7 @@ const AdminInventory = () => {
   if (!isLoaded) {
     return <LoadingScreen message="Fetching Inventory...." />;
   }
+  
   return (
     <div className="p-6 font-sans">
       <div className="flex justify-between items-center mb-4">
@@ -201,146 +202,147 @@ const AdminInventory = () => {
           Add New Item
         </button>
       </div>
-      <table className="min-w-full bg-white border border-gray-200 mb-6">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b">Name</th>
-            <th className="py-2 px-4 border-b">Category</th>
-            <th className="py-2 px-4 border-b">Price</th>
-            <th className="py-2 px-4 border-b">Stock</th>
-            <th className="py-2 px-4 border-b">Threshold</th>
-            <th className="py-2 px-4 border-b">Status</th>
-            <th className="py-2 px-4 border-b">Type</th>
-            <th className="py-2 px-4 border-b">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {!inventory
-            ? "No - items in inventory"
-            : inventory.map((item) => (
-                <tr
-                  key={item._id}
-                  className={`${
-                    item.stock <= item.threshold && editableItemId != item._id
-                      ? "bg-red-200"
-                      : ""
-                  } ${editableItemId === item._id ? "bg-gray-200" : ""}`}
-                >
-                  {editableItemId === item._id ? (
-                    <>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.name}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.category}
-                      </td>
-                      <td className="py-2 px-4 border-b">
-                        <input
-                          className="w-full p-2 text-center border border-gray-300 rounded"
-                          type="number"
-                          name="price"
-                          value={editableItem.price}
-                          onChange={handleEditInputChange}
-                        />
-                      </td>
-                      <td className="py-2 px-4 border-b">
-                        <input
-                          className="w-full p-2 text-center border border-gray-300 rounded"
-                          type="number"
-                          name="stock"
-                          value={editableItem.stock}
-                          onChange={handleEditInputChange}
-                        />
-                      </td>
-                      <td className="py-2 px-4 border-b">
-                        <input
-                          className="w-full text-center p-2 border border-gray-300 rounded"
-                          type="number"
-                          name="threshold"
-                          value={editableItem.threshold}
-                          onChange={handleEditInputChange}
-                        />
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.status}
-                      </td>
-
-                      <td className="py-2 px-4 border-b">
-                        <select
-                          className="w-full p-2 border border-gray-300 rounded"
-                          name="type"
-                          value={editableItem.type}
-                          onChange={handleEditInputChange}
-                        >
-                          <option value="veg">Veg</option>
-                          <option value="non-veg">Non-Veg</option>
-                        </select>
-                      </td>
-                      <td className="py-2 px-4 border-b flex justify-center space-x-2">
-                        <button
-                          disabled={isSubmitting}
-                          className="bg-green-500 text-white px-4 py-2 rounded"
-                          onClick={() => updateItem(item._id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          disabled={isSubmitting}
-                          className="bg-gray-500 text-white px-4 py-2 rounded"
-                          onClick={() => setEditableItemId(null)}
-                        >
-                          <MdCancel />
-                        </button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.name}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.category}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.price}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.stock}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.threshold}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.status}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b">
-                        {item.type}
-                      </td>
-                      <td className="py-2 text-center px-4 border-b flex justify-center space-x-2">
-                        <button
-                          disabled={isSubmitting}
-                          className="bg-blue-500 text-white px-4 py-2 rounded"
-                          onClick={() => {
-                            setEditableItemId(item._id);
-                            setEditableItem(item);
-                          }}
-                        >
-                          Update
-                        </button>
-                        <button
-                          disabled={isSubmitting}
-                          className="bg-red-500 text-white px-4 py-2 rounded"
-                          onClick={() => handleDeleteClick(item._id)}
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
-        </tbody>
-      </table>
+      {inventory.length === 0 ? (
+        <p className=" text-xl flex items-center justify-center text-red-400 ">No items in inventory</p>
+      ) : (
+        <table className="min-w-full bg-white border border-gray-200 mb-6">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b">Name</th>
+              <th className="py-2 px-4 border-b">Category</th>
+              <th className="py-2 px-4 border-b">Price</th>
+              <th className="py-2 px-4 border-b">Stock</th>
+              <th className="py-2 px-4 border-b">Threshold</th>
+              <th className="py-2 px-4 border-b">Status</th>
+              <th className="py-2 px-4 border-b">Type</th>
+              <th className="py-2 px-4 border-b">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {inventory.map((item) => (
+              <tr
+                key={item._id}
+                className={`${
+                  item.stock <= item.threshold && editableItemId !== item._id
+                    ? "bg-red-200"
+                    : ""
+                } ${editableItemId === item._id ? "bg-gray-200" : ""}`}
+              >
+                {editableItemId === item._id ? (
+                  <>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.name}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.category}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <input
+                        className="w-full p-2 text-center border border-gray-300 rounded"
+                        type="number"
+                        name="price"
+                        value={editableItem.price}
+                        onChange={handleEditInputChange}
+                      />
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <input
+                        className="w-full p-2 text-center border border-gray-300 rounded"
+                        type="number"
+                        name="stock"
+                        value={editableItem.stock}
+                        onChange={handleEditInputChange}
+                      />
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <input
+                        className="w-full text-center p-2 border border-gray-300 rounded"
+                        type="number"
+                        name="threshold"
+                        value={editableItem.threshold}
+                        onChange={handleEditInputChange}
+                      />
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.status}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded"
+                        name="type"
+                        value={editableItem.type}
+                        onChange={handleEditInputChange}
+                      >
+                        <option value="veg">Veg</option>
+                        <option value="non-veg">Non-Veg</option>
+                      </select>
+                    </td>
+                    <td className="py-2 px-4 border-b flex justify-center space-x-2">
+                      <button
+                        disabled={isSubmitting}
+                        className="bg-green-500 text-white px-4 py-2 rounded"
+                        onClick={() => updateItem(item._id)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        disabled={isSubmitting}
+                        className="bg-gray-500 text-white px-4 py-2 rounded"
+                        onClick={() => setEditableItemId(null)}
+                      >
+                        <MdCancel />
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.name}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.category}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.price}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.stock}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.threshold}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.status}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b">
+                      {item.type}
+                    </td>
+                    <td className="py-2 text-center px-4 border-b flex justify-center space-x-2">
+                      <button
+                        disabled={isSubmitting}
+                        className="bg-blue-500 text-white px-4 py-2 rounded"
+                        onClick={() => {
+                          setEditableItemId(item._id);
+                          setEditableItem(item);
+                        }}
+                      >
+                        Update
+                      </button>
+                      <button
+                        disabled={isSubmitting}
+                        className="bg-red-500 text-white px-4 py-2 rounded"
+                        onClick={() => handleDeleteClick(item._id)}
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       {/* Confirmation Overlay */}
       {confirmationItemId && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -396,6 +398,7 @@ const AdminInventory = () => {
                     Select one of below options
                   </option>
                   <option value="cheese">Cheese</option>
+                  <option value="baseSize">Base Size</option>
                   <option value="sauce">Sauce</option>
                   <option value="base">Base</option>
                   <option value="topping">Topping</option>

@@ -47,7 +47,7 @@ export const getUserInfo =async(req,res,next)=>{
             role: 'user'
         });
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
         res.status(500).send("Internal Server Error");
     }
 }

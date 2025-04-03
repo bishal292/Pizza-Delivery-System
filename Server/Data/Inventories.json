@@ -1,0 +1,291 @@
+[
+    {
+      "name": "Regular Size",
+      "category": "baseSize",
+      "type": "veg",
+      "price": 100,
+      "stock": 300,
+      "threshold": 60,
+      "status": "available"
+    },
+    {
+      "name": "Medium Size",
+      "category": "baseSize",
+      "type": "veg",
+      "price": 120,
+      "stock": 280,
+      "threshold": 55,
+      "status": "available"
+    },
+    {
+      "name": "Large Size",
+      "category": "baseSize",
+      "type": "veg",
+      "price": 150,
+      "stock": 250,
+      "threshold": 50,
+      "status": "available"
+    },
+    {
+      "name": "Extra Large Size",
+      "category": "baseSize",
+      "type": "veg",
+      "price": 180,
+      "stock": 200,
+      "threshold": 40,
+      "status": "available"
+    },
+    {
+      "name": "Thin Crust",
+      "category": "base",
+      "type": "veg",
+      "price": 70,
+      "stock": 300,
+      "threshold": 75,
+      "status": "available"
+    },
+    {
+      "name": "Hand Tossed",
+      "category": "base",
+      "type": "veg",
+      "price": 65,
+      "stock": 250,
+      "threshold": 60,
+      "status": "available"
+    },
+    {
+      "name": "Cheese Burst",
+      "category": "base",
+      "type": "veg",
+      "price": 90,
+      "stock": 200,
+      "threshold": 50,
+      "status": "available"
+    },
+    {
+      "name": "Wheat Crust",
+      "category": "base",
+      "type": "veg",
+      "price": 75,
+      "stock": 180,
+      "threshold": 45,
+      "status": "available"
+    },
+    {
+      "name": "Garlic Bread Base",
+      "category": "base",
+      "type": "veg",
+      "price": 85,
+      "stock": 150,
+      "threshold": 40,
+      "status": "available"
+    },
+    {
+      "name": "New York Style Crust",
+      "category": "base",
+      "type": "veg",
+      "price": 95,
+      "stock": 120,
+      "threshold": 35,
+      "status": "available"
+    },
+    {
+      "name": "Deep Dish Crust",
+      "category": "base",
+      "type": "veg",
+      "price": 100,
+      "stock": 100,
+      "threshold": 30,
+      "status": "available"
+    },
+    {
+      "name": "Mozzarella Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 50,
+      "stock": 200,
+      "threshold": 50,
+      "status": "available"
+    },
+    {
+      "name": "Cheddar Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 60,
+      "stock": 180,
+      "threshold": 45,
+      "status": "available"
+    },
+    {
+      "name": "Parmesan Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 70,
+      "stock": 160,
+      "threshold": 40,
+      "status": "available"
+    },
+    {
+      "name": "Goat Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 80,
+      "stock": 140,
+      "threshold": 35,
+      "status": "available"
+    },
+    {
+      "name": "Blue Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 90,
+      "stock": 120,
+      "threshold": 30,
+      "status": "available"
+    },
+    {
+      "name": "Feta Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 85,
+      "stock": 130,
+      "threshold": 35,
+      "status": "available"
+    },
+    {
+      "name": "Ricotta Cheese",
+      "category": "cheese",
+      "type": "veg",
+      "price": 95,
+      "stock": 110,
+      "threshold": 25,
+      "status": "available"
+    },
+    {
+      "name": "Tomato Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 30,
+      "stock": 300,
+      "threshold": 60,
+      "status": "available"
+    },
+    {
+      "name": "Barbecue Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 35,
+      "stock": 280,
+      "threshold": 55,
+      "status": "available"
+    },
+    {
+      "name": "Pesto Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 40,
+      "stock": 260,
+      "threshold": 50,
+      "status": "available"
+    },
+    {
+      "name": "Alfredo Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 45,
+      "stock": 240,
+      "threshold": 45,
+      "status": "available"
+    },
+    {
+      "name": "Spicy Arrabbiata Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 50,
+      "stock": 220,
+      "threshold": 40,
+      "status": "available"
+    },
+    {
+      "name": "Garlic Parmesan Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 55,
+      "stock": 200,
+      "threshold": 35,
+      "status": "available"
+    },
+    {
+      "name": "Buffalo Sauce",
+      "category": "sauce",
+      "type": "veg",
+      "price": 60,
+      "stock": 180,
+      "threshold": 30,
+      "status": "available"
+    },
+    {
+      "name": "Chicken Sausage",
+      "category": "topping",
+      "type": "non-veg",
+      "price": 90,
+      "stock": 200,
+      "threshold": 50,
+      "status": "available"
+    },
+    {
+      "name": "Pepperoni",
+      "category": "topping",
+      "type": "non-veg",
+      "price": 95,
+      "stock": 180,
+      "threshold": 45,
+      "status": "available"
+    },
+    {
+      "name": "Grilled Mushrooms",
+      "category": "topping",
+      "type": "veg",
+      "price": 55,
+      "stock": 160,
+      "threshold": 40,
+      "status": "available"
+    },
+    {
+      "name": "Paneer",
+      "category": "topping",
+      "type": "veg",
+      "price": 60,
+      "stock": 140,
+      "threshold": 35,
+      "status": "available"
+    },
+    {
+      "name": "Jalapeño",
+      "category": "topping",
+      "type": "veg",
+      "price": 50,
+      "stock": 120,
+      "threshold": 30,
+      "status": "available"
+    },
+    {
+      "name": "Peri-Peri Chicken",
+      "category": "topping",
+      "type": "non-veg",
+      "price": 110,
+      "stock": 100,
+      "threshold": 25,
+      "status": "available"
+    },
+    {
+      "name": "Grilled Chicken Rasher",
+      "category": "topping",
+      "type": "non-veg",
+      "price": 105,
+      "stock": 90,
+      "threshold": 20,
+      "status": "available"
+    }
+  ]
+  

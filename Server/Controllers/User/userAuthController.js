@@ -42,7 +42,7 @@ export const logIn = async (req, res, next) => {
       role: "user",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -66,7 +66,7 @@ export const signUp = async (req, res, next) => {
           "User already exists with this email, Please login, or use another email for signup."
         );
 
-    // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
+    // checkPasswordkStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
 
     const newUser = await User.create({ name, email, password });
     if (!newUser) return res.status(500).send("Internal Server Error");
@@ -85,7 +85,7 @@ export const signUp = async (req, res, next) => {
       role: "user",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -100,7 +100,7 @@ export const logOut = async (req, res, next) => {
       message: "logged Out Successfully",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -136,7 +136,7 @@ export const changePassword = async (req, res, next) => {
 
     res.status(200).send("Password Changed Successfully");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -182,7 +182,7 @@ export const forgotpassword = async (req, res, next) => {
           "Reset Password Link Sent to your email, please check your email"
         );
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save();
@@ -191,7 +191,7 @@ export const forgotpassword = async (req, res, next) => {
         .send("Error in sending email, Please try again later");
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -253,7 +253,7 @@ export const resetpassword = async (req, res, next) => {
       role: "user",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -276,7 +276,7 @@ export const UserInfo = async (req, res, next) => {
       role: "user",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
   next();

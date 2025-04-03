@@ -120,9 +120,7 @@ const UserAuth = ({ action }) => {
           password,
           confirmPassword,
         });
-        console.log(response);
         if (response.status === 201) {
-          console.log(response.data);
           setUserInfo(response.data);
           toast.success("User Created successfully");
           navigate("/pizzeria/home");
@@ -136,8 +134,6 @@ const UserAuth = ({ action }) => {
           } else {
             toast.error("An unknown error occurred");
           }
-        } else {
-          toast.error("Network error. Please try again later.");
         }
       } finally {
         setIsSubmitting(false);

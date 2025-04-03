@@ -29,29 +29,7 @@ const UserHome = () => {
         toast.error("Error fetching pizzas");
       } finally {
         setIsLoaded(true);
-
-        const fetchSliderImages = async () => {
-          try {
-            const response = await apiClient.get("/slider-images");
-            console.log(response);
-          } catch (error) {
-            toast.error("Error fetching slider images");
-          }
-        };
-
-        // fetchSliderImages();
       }
-
-      const fetchSliderImages = async () => {
-        try {
-          const response = await apiClient.get("/slider-images");
-          console.log(response);
-        } catch (error) {
-          toast.error("Error fetching slider images");
-        }
-      };
-
-      // fetchSliderImages();
     };
 
     const fetchSliderImages = async () => {
@@ -78,16 +56,19 @@ const UserHome = () => {
   const handleCustomizePizza = (pizza) => {
     setSelectedPizza(pizza);
   };
-  const addToServerCart = async (pizza,customizations = {}) => {
+  const addToServerCart = async (pizza, customizations = {}) => {
     try {
-      const item ={
+      const item = {
         pizzaId: pizza._id,
         quantity: 1,
         customizations,
         price: pizza.price,
-      }
-      const response = await apiClient.post(USER_ADD_TO_CART, { item }, { withCredentials: true });
-      console.log(response);
+      };
+      const response = await apiClient.post(
+        USER_ADD_TO_CART,
+        { item },
+        { withCredentials: true }
+      );
       if (response.status === 201) {
         toast.success(response.data);
       }
@@ -98,17 +79,18 @@ const UserHome = () => {
   const handleSaveCustomizedPizza = (customizedPizza) => {
     // Pass customizations to addToCart
     selectedPizza.price = customizedPizza.price;
-    const customizations = customizedPizza.customizations === null ? {} : customizedPizza.customizations;
+    const customizations =
+      customizedPizza.customizations === null
+        ? {}
+        : customizedPizza.customizations;
     addToCart(selectedPizza, customizations);
-    addToServerCart(selectedPizza,customizations);
+    addToServerCart(selectedPizza, customizations);
     toast.success("pizza added to cart");
     setSelectedPizza(null);
   };
 
   if (!isLoaded) {
-    return(
-      <LoadingScreen message="" />
-    )
+    return <LoadingScreen message="" />;
   }
 
   return (
@@ -176,7 +158,7 @@ const UserHome = () => {
 
                 <div className="mt-2 text-gray-700 text-sm space-y-1">
                   <p>
-                    <b>Size:</b> {pizza.size}
+                    <b>Size:</b> {pizza.size?.name}
                   </p>
                   <p>
                     <b>Base:</b> {pizza.base.name}
@@ -200,7 +182,7 @@ const UserHome = () => {
                     className="bg-green-500 hover:bg-green-600 hover:scale-95 text-white text-center px-3 py-2 rounded-lg shadow-md transition-all flex-1 flex items-center justify-around"
                     onClick={() => handleAddToCart(pizza)}
                   >
-                    <FaCartPlus />  Add
+                    <FaCartPlus /> Add
                   </button>
                   <button
                     className="bg-blue-500 hover:bg-blue-600 hover:scale-95 text-white px-3 py-2 rounded-lg shadow-md transition-all flex-1"

@@ -130,7 +130,6 @@ const AdminAuth = ({ action }) => {
           confirmPassword,
           secretKey,
         });
-        console.log(response);
         if (response.status === 201 && response.data) {
           setUserInfo(response.data);
           toast.success("Admin Created successfully");

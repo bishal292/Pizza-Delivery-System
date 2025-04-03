@@ -1,0 +1,398 @@
+[
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e01"
+    },
+    "name": "Regular Size",
+    "category": "baseSize",
+    "type": "veg",
+    "price": 100,
+    "stock": 300,
+    "threshold": 60,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5c3261b52888561408e33"
+    },
+    "name": "Corn",
+    "category": "topping",
+    "type": "veg",
+    "price": 15,
+    "stock": 1000,
+    "threshold": 100,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e02"
+    },
+    "name": "Medium Size",
+    "category": "baseSize",
+    "type": "veg",
+    "price": 120,
+    "stock": 280,
+    "threshold": 55,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e03"
+    },
+    "name": "Large Size",
+    "category": "baseSize",
+    "type": "veg",
+    "price": 150,
+    "stock": 250,
+    "threshold": 50,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e04"
+    },
+    "name": "Extra Large Size",
+    "category": "baseSize",
+    "type": "veg",
+    "price": 180,
+    "stock": 200,
+    "threshold": 40,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e05"
+    },
+    "name": "Thin Crust",
+    "category": "base",
+    "type": "veg",
+    "price": 70,
+    "stock": 300,
+    "threshold": 75,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e06"
+    },
+    "name": "Hand Tossed",
+    "category": "base",
+    "type": "veg",
+    "price": 65,
+    "stock": 250,
+    "threshold": 60,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e07"
+    },
+    "name": "Cheese Burst",
+    "category": "base",
+    "type": "veg",
+    "price": 90,
+    "stock": 200,
+    "threshold": 50,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e08"
+    },
+    "name": "Wheat Crust",
+    "category": "base",
+    "type": "veg",
+    "price": 75,
+    "stock": 180,
+    "threshold": 45,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e09"
+    },
+    "name": "Garlic Bread Base",
+    "category": "base",
+    "type": "veg",
+    "price": 85,
+    "stock": 150,
+    "threshold": 40,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e0a"
+    },
+    "name": "New York Style Crust",
+    "category": "base",
+    "type": "veg",
+    "price": 95,
+    "stock": 120,
+    "threshold": 35,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e0b"
+    },
+    "name": "Deep Dish Crust",
+    "category": "base",
+    "type": "veg",
+    "price": 100,
+    "stock": 100,
+    "threshold": 30,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e0c"
+    },
+    "name": "Mozzarella Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 50,
+    "stock": 200,
+    "threshold": 50,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e0d"
+    },
+    "name": "Cheddar Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 60,
+    "stock": 180,
+    "threshold": 45,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e0e"
+    },
+    "name": "Parmesan Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 70,
+    "stock": 160,
+    "threshold": 40,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e0f"
+    },
+    "name": "Goat Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 80,
+    "stock": 140,
+    "threshold": 35,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e10"
+    },
+    "name": "Blue Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 90,
+    "stock": 120,
+    "threshold": 30,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e11"
+    },
+    "name": "Feta Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 85,
+    "stock": 130,
+    "threshold": 35,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e12"
+    },
+    "name": "Ricotta Cheese",
+    "category": "cheese",
+    "type": "veg",
+    "price": 95,
+    "stock": 110,
+    "threshold": 25,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e13"
+    },
+    "name": "Tomato Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 30,
+    "stock": 300,
+    "threshold": 60,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e14"
+    },
+    "name": "Barbecue Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 35,
+    "stock": 280,
+    "threshold": 55,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e15"
+    },
+    "name": "Pesto Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 40,
+    "stock": 260,
+    "threshold": 50,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e16"
+    },
+    "name": "Alfredo Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 45,
+    "stock": 240,
+    "threshold": 45,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e17"
+    },
+    "name": "Spicy Arrabbiata Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 50,
+    "stock": 220,
+    "threshold": 40,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e18"
+    },
+    "name": "Garlic Parmesan Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 55,
+    "stock": 200,
+    "threshold": 35,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e19"
+    },
+    "name": "Buffalo Sauce",
+    "category": "sauce",
+    "type": "veg",
+    "price": 60,
+    "stock": 180,
+    "threshold": 30,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e1a"
+    },
+    "name": "Chicken Sausage",
+    "category": "topping",
+    "type": "non-veg",
+    "price": 90,
+    "stock": 200,
+    "threshold": 50,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e1b"
+    },
+    "name": "Pepperoni",
+    "category": "topping",
+    "type": "non-veg",
+    "price": 95,
+    "stock": 180,
+    "threshold": 45,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e1c"
+    },
+    "name": "Grilled Mushrooms",
+    "category": "topping",
+    "type": "veg",
+    "price": 55,
+    "stock": 160,
+    "threshold": 40,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e1d"
+    },
+    "name": "Paneer",
+    "category": "topping",
+    "type": "veg",
+    "price": 60,
+    "stock": 140,
+    "threshold": 35,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e1e"
+    },
+    "name": "Jalapeño",
+    "category": "topping",
+    "type": "veg",
+    "price": 50,
+    "stock": 120,
+    "threshold": 30,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e1f"
+    },
+    "name": "Peri-Peri Chicken",
+    "category": "topping",
+    "type": "non-veg",
+    "price": 110,
+    "stock": 100,
+    "threshold": 25,
+    "status": "available"
+  },
+  {
+    "_id": {
+      "$oid": "67e5bc5c4a1507f3ccc04e20"
+    },
+    "name": "Grilled Chicken Rasher",
+    "category": "topping",
+    "type": "non-veg",
+    "price": 105,
+    "stock": 90,
+    "threshold": 20,
+    "status": "available"
+  }
+]

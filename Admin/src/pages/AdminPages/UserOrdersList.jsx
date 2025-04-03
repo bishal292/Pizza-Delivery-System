@@ -27,7 +27,6 @@ const UserOrdersList = () => {
         const response = await apiClient.get(`${ADMIN_USER_ORDERS}?id=${id}`, {
           withCredentials: true,
         });
-        console.log(response);
         if (response.status === 200) {
           setUser(response.data.user);
           setOrders(response.data.orders);

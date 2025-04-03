@@ -43,7 +43,7 @@ export const logIn = async (req, res, next) => {
       role:'admin'
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -89,7 +89,7 @@ export const signUp = async (req, res, next) => {
       role:'admin'
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -102,7 +102,7 @@ export const logOut = async (req, res, next) => {
     BlockedCookies.create({ cookie: req.cookies.jwt });
     res.status(200).send("Logged Out Successfully");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -138,7 +138,7 @@ export const changePassword = async (req, res, next) => {
 
     res.status(200).send("Password Changed Successfully");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -183,7 +183,7 @@ export const forgotpassword = async (req, res, next) => {
           "Reset Password OTP Sent to your email, please check your email"
         );
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save();
@@ -192,7 +192,7 @@ export const forgotpassword = async (req, res, next) => {
         .send("Error in sending email, Please try again later");
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -254,7 +254,7 @@ export const resetpassword = async (req, res, next) => {
          role: "user",
        });
      } catch (error) {
-       console.log(error.message);
+       console.error(error.message);
        res.status(500).send("Internal Server Error");
      }
 };
@@ -275,7 +275,7 @@ export const AdminInfo = async (req, res, next) => {
             role:'admin'
         });
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
         res.status(500).send("Internal Server Error");        
     }
   next();
