@@ -167,4 +167,41 @@ inventorySchema.pre("findOneAndDelete", async function (next) {
   }
 });
 
+inventorySchema.post("findOneAndUpdate", async function (doc, next) {
+  console.log("findByIdAndUpdate middleware triggered");
+  try {
+    if (doc && doc.stock <= doc.threshold) {
+      console.log(`Inventory item '${doc.name}' is low stock with stock :${doc.stock}`);
+
+      // Send email to admins
+      const lowStockItem = {
+        name: doc.name,
+        category: doc.category,
+        stock: doc.stock,
+        threshold: doc.threshold,
+      };
+
+      const emailResult = await sendEmailToAdmins({
+        subject: "Low Stock Alert",
+        message: `The following item is running low on stock:\n\n${JSON.stringify(
+          lowStockItem,
+          null,
+          2
+        )}`,
+      });
+      if (!emailResult) {
+        console.warn(`No recipients defined for low stock alert email for item '${doc.name}'`);
+      } else {
+        console.log(`Low stock alert email sent for item '${doc.name}'`);
+      }
+
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error in inventory post-update middleware:", error);
+    next(error);
+  }
+});
+
 export const Inventory = mongoose.model("Inventory", inventorySchema);

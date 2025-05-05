@@ -142,7 +142,7 @@ export const checkOrderStatus = async (razorpayOrderId) => {
     console.log(razorpayOrder);
     return {
       success: true,
-      isPaid: razorpayOrder.status === "paid",
+      isPaid: razorpayOrder?.status === "paid" ,
       razorpayOrder,
     };
   } catch (error) {
@@ -238,6 +238,6 @@ export const getTotalEarnings = async (type = "today") => {
 
 
 
-const response = await getTotalEarnings("lifetime");
-const response2 = await getTotalEarnings("today");
- console.log(response,response2);
+// const response = await getTotalEarnings("lifetime");
+// const response2 = await getTotalEarnings("today");
+//  console.log(response,response2);

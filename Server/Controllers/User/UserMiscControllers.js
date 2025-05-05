@@ -599,7 +599,7 @@ export const completePayment = async (req, res, next) => {
 
     const orderStatus = await checkOrderStatus(order.orderId);
 
-    if (!orderStatus.success) {
+    if (!orderStatus?.success) {
       const createorderpay = await createPayment(order.totalPrice,order.dailyOrderId);
       if (!createorderpay.success) {
         return res

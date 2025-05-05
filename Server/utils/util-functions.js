@@ -70,13 +70,28 @@ export function sendEmail(option) {
 
 export const sendEmailToAdmins = async (option) => {
   const admins = await Admin.find({}, "email");
+  const emails=[];
+  admins.forEach((admin) => {
+    emails.push(admin.email);
+  });
+  const formattedEmails = emails.join(", ");
+  console.log("Sending email to admins:", formattedEmails);
+
   const emailOptions = {
     from: process.env.SYSTEM_EMAIL,
-    to: admins.map((admin) => admin.email).join(","),
+    to: formattedEmails,
     subject: option.subject,
     text: option.message,
   };
-  await sendEmail(emailOptions);
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    port: process.env.EMAIL_PORT,
+  });
+  return await transporter.sendMail(emailOptions);
 };
 
 /**
