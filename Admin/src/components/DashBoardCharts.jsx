@@ -87,7 +87,7 @@ const DashBoardCharts = () => {
   // Doughnut Chart Data
   const totalOrders = Object.values(orderData).reduce((a, b) => a + b, 0);
   const doughnutChartData = {
-    labels: ["Placed", "Delivered", "Cancelled", "Pending"],
+    labels: ["Placed", "Completed", "Cancelled", "Pending"],
     datasets: [
       {
         label: "Order Distribution",
@@ -99,7 +99,7 @@ const DashBoardCharts = () => {
         ],
         backgroundColor: [
           "rgba(54, 162, 235, 0.8)", // Placed
-          "rgba(75, 192, 192, 0.8)", // Delivered
+          "rgba(75, 192, 192, 0.8)", // Completed
           "rgba(255, 99, 132, 0.8)", // Cancelled
           "rgba(255, 206, 86, 0.8)", // Pending
         ],

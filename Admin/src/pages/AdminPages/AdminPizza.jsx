@@ -185,7 +185,7 @@ const AdminPizza = () => {
   return (
     <div className="p-6 font-sans">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Admin Pizza</h1>
+        <h1 className="text-2xl font-bold">Pizzas</h1>
         <button
           disabled={isSubmitting}
           className="bg-green-500 text-white px-4 py-2 rounded"

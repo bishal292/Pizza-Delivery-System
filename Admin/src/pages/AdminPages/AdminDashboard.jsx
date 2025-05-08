@@ -75,7 +75,7 @@ const Dashboard = () => {
       </div>
 
       {/* Charts and Graphs Section to be developed. */}
-      <div className="bg-white shadow-md rounded-lg p-10">
+      <div className="bg-white shadow-md rounded-lg p-10" title="Analytics, For now is a demo analaytics and donot represent the real as the datas are too low " >
         <h2 className="text-2xl font-bold text-gray-700 mb-6">
           Analytics and Insights
         </h2>

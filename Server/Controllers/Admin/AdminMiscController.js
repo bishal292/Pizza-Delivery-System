@@ -70,6 +70,7 @@ export const dashboard = async (req, res, next) => {
     startOfDay.setHours(0, 0, 0, 0);
     const todayOrderCancelled = await Order.find({
       status: "cancelled",
+      createdAt: {$gte:{startOfDay}}
     }).countDocuments();
 
     const todayOrderCount = await Order.find({
