@@ -50,7 +50,6 @@ const AdminOrders = () => {
       const response = await apiClient.get(
         `${ADMIN_ORDER_FILTERED}?status=${status}`
       );
-      console.log("Filtered Orders : ", response);
       if (response.status === 200) {
         setOrders(response.data);
         toast.success("Orders fetched successfully with Status : " + status);

@@ -157,7 +157,6 @@ const UserCart = () => {
           withCredentials: true,
         }
       );
-      console.log("Order Place Response : ", response);
 
       if (response.status === 201) {
         const order = response.data.order;

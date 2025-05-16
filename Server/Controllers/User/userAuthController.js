@@ -49,7 +49,6 @@ export const logIn = async (req, res, next) => {
 
 export const signUp = async (req, res, next) => {
   try {
-    console.log(req.body);
     const { name, email, password } = req.body;
     if (!name || !email || !password)
       return res.status(400).send("Please provide all fields");
@@ -66,7 +65,7 @@ export const signUp = async (req, res, next) => {
           "User already exists with this email, Please login, or use another email for signup."
         );
 
-    // checkPasswordkStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
+    // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
 
     const newUser = await User.create({ name, email, password });
     if (!newUser) return res.status(500).send("Internal Server Error");
@@ -108,10 +107,7 @@ export const logOut = async (req, res, next) => {
 export const changePassword = async (req, res, next) => {
   try {
     const userId = req.userId;
-    console.log(userId);
     const { oldPassword, newPassword } = req.body;
-
-    console.log(oldPassword);
 
     if (!userId) return res.status(400).send("You are not logged in");
 

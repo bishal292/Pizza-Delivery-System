@@ -70,7 +70,7 @@ export const dashboard = async (req, res, next) => {
     startOfDay.setHours(0, 0, 0, 0);
     const todayOrderCancelled = await Order.find({
       status: "cancelled",
-      createdAt: {$gte:{startOfDay}}
+      createdAt: {$gte: startOfDay},
     }).countDocuments();
 
     const todayOrderCount = await Order.find({
@@ -558,7 +558,6 @@ export const getAllUsers = async (req, res, next) => {
 
     const skip = parseInt(req.query.skip) || 0;
     const limit = parseInt(req.query.limit) || 50;
-    console.log("Skip", skip, "Limit", limit);
 
     const users = await User.find().skip(skip).limit(limit);
 
@@ -625,7 +624,6 @@ export const getUserWithNameOrEmail = async (req, res, next) => {
     const admin = await Admin.findById(userId);
     if (!admin) return res.status(404).send("No Such Admin Found");
     let { q: query } = req.query;
-    console.log("Name", query);
     query = query.trim();
     if (!query || query.length < 3) {
       return res.status(400).send("Invalid User Name");

@@ -34,7 +34,6 @@ const UserCart = () => {
         toast.error(error.response?.data || error.response?.message);
       } finally {
         setIsLoading(false);
-        console.log("Cart fetched successfully");
       }
     };
 

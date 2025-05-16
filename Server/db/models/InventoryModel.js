@@ -41,8 +41,6 @@ inventorySchema.post("save", async function (doc, next) {
       doc.status = "out of stock";
       await doc.save();
 
-      console.log(`Inventory item '${doc.name}' is out of stock`);
-
       // Find all pizzas that use this inventory item
       const pizzasToUpdate = await Pizza.find({
         $or: [
@@ -64,7 +62,6 @@ inventorySchema.post("save", async function (doc, next) {
         // Bulk update pizza status
         await Pizza.bulkWrite(bulkOps);
 
-        console.log(`Updated ${pizzasToUpdate.length} pizzas to 'unavailable'`);
       }
     }
 
@@ -89,8 +86,6 @@ inventorySchema.post("save", async function (doc, next) {
 
       if (!emailResult) {
         console.warn(`No recipients defined for low stock alert email for item '${doc.name}'`);
-      } else {
-        console.log(`Low stock alert email sent for item '${doc.name}'`);
       }
 
       // Emit socket event to admins
@@ -99,8 +94,6 @@ inventorySchema.post("save", async function (doc, next) {
         adminSocketIds.forEach((socketId) => {
           io.to(socketId).emit("lowStockAlert", lowStockItem);
         });
-
-        console.log(`Low stock alert emitted for item '${doc.name}'`);
       } else {
         console.warn("Socket map is not initialized or invalid");
       }
@@ -121,7 +114,6 @@ inventorySchema.pre("findOneAndDelete", async function (next) {
       return next();
     }
 
-    console.log(`Inventory item '${doc.name}' is being deleted`);
 
     const pizzasToUpdate = await Pizza.find({
       $or: [
@@ -148,9 +140,6 @@ inventorySchema.pre("findOneAndDelete", async function (next) {
       }));
 
       await Pizza.bulkWrite(bulkOps);
-      console.log(`Removed item '${doc.name}' from ${pizzasToUpdate.length} pizzas`);
-    } else {
-      console.log(`No pizzas found using item '${doc.name}'`);
     }
 
     const Order = mongoose.model("Order");
@@ -158,7 +147,6 @@ inventorySchema.pre("findOneAndDelete", async function (next) {
       { "customizations.inventoryItem": doc._id },
       { $pull: { customizations: { inventoryItem: doc._id } } }
     );
-    console.log(`Removed item '${doc.name}' from ${ordersToUpdate.modifiedCount} orders`);
 
     next();
   } catch (error) {
@@ -168,11 +156,8 @@ inventorySchema.pre("findOneAndDelete", async function (next) {
 });
 
 inventorySchema.post("findOneAndUpdate", async function (doc, next) {
-  console.log("findByIdAndUpdate middleware triggered");
   try {
     if (doc && doc.stock <= doc.threshold) {
-      console.log(`Inventory item '${doc.name}' is low stock with stock :${doc.stock}`);
-
       // Send email to admins
       const lowStockItem = {
         name: doc.name,
@@ -191,10 +176,7 @@ inventorySchema.post("findOneAndUpdate", async function (doc, next) {
       });
       if (!emailResult) {
         console.warn(`No recipients defined for low stock alert email for item '${doc.name}'`);
-      } else {
-        console.log(`Low stock alert email sent for item '${doc.name}'`);
       }
-
     }
 
     next();

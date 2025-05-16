@@ -50,16 +50,23 @@ export const checkPasswordStrength = (password, res) => {
  */
 export function sendEmail(option) {
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
+    service: "gmail", // -> To be Used Only for Gmail.
+    // host: process.env.EMAIL_HOST, // -> Not Needed for Gmail
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      // For Testing purpose only As it uses Mailtrap For Connection.
+      
+      // user: process.env.EMAIL_USER,
+      // pass: process.env.EMAIL_PASSWORD,
+
+      user: process.env.GMAIL_APP_USERNAME,
+      pass: process.env.GMAIL_APP_SECRET,
     },
-    port: process.env.EMAIL_PORT,
+    // port: process.env.EMAIL_PORT, // -> Not Needed for Gmail
   });
 
   const emailOptions = {
-    from: `Pizzeria Support <${process.env.SYSTEM_EMAIL}>`,
+    // from: `Pizzeria Support <${process.env.SYSTEM_EMAIL}>`, // -> Not to be used for Gmail as it will include the email address of the sender.
+    from: process.env.GMAIL_APP_USERNAME,
     to: option.email,
     subject: option.subject,
     text: option.message,
@@ -75,21 +82,27 @@ export const sendEmailToAdmins = async (option) => {
     emails.push(admin.email);
   });
   const formattedEmails = emails.join(", ");
-  console.log("Sending email to admins:", formattedEmails);
 
   const emailOptions = {
-    from: process.env.SYSTEM_EMAIL,
+    // from: `Pizzeria Support <${process.env.SYSTEM_EMAIL}>`, // -> Not to be used for Gmail as it will include the email address of the sender.
+    from: process.env.GMAIL_APP_USERNAME, // -> To be used for Gmail Service.
     to: formattedEmails,
     subject: option.subject,
     text: option.message,
   };
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
+    service: "gmail", // -> To be Used Only for Gmail.
+    // host: process.env.EMAIL_HOST, // -> Not Needed for Gmail
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      // For Testing purpose only As it uses Mailtrap For Connection.
+      
+      // user: process.env.EMAIL_USER,
+      // pass: process.env.EMAIL_PASSWORD,
+
+      user: process.env.GMAIL_APP_USERNAME,
+      pass: process.env.GMAIL_APP_SECRET,
     },
-    port: process.env.EMAIL_PORT,
+    // port: process.env.EMAIL_PORT, // -> Not Needed for Gmail
   });
   return await transporter.sendMail(emailOptions);
 };

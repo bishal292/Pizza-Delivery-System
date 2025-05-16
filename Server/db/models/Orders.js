@@ -99,9 +99,7 @@ orderSchema.post("save", async function (doc, next) {
     }
     if (!io) {
       await setupSocket(server);
-      console.log("Socket setup done");
     }
-    console.log("adminSocketMap", adminSocketMap);
     const adminSockets = [...adminSocketMap.values()];
     if (adminSockets.length > 0) {
       for (const socketId of adminSockets) {
@@ -110,12 +108,10 @@ orderSchema.post("save", async function (doc, next) {
           id: doc._id,
           dailyOrderId: doc.dailyOrderId,
         });
-        console.log("Emitting new order event to admin socket:", socketId);
       }
     } else {
       console.warn("No admin socket available to emit new-order event.");
     }
-    console.log("Order saved: Stock is being decremented");
     const bulkOps = [];
 
     // Prepare batch stock reduction operations
@@ -177,13 +173,10 @@ orderSchema.post("findOneAndUpdate", async function (doc, next) {
     if (!updatedDoc) {
       return next(new Error("Order not found"));
     }
-    console.log(userSocketMap);
     const userSocket = userSocketMap.get(updatedDoc.userId.toString());
-    console.log(userSocket);
     if (userSocket) {
       if (!io) {
         await setupSocket(server);
-        console.log("Socket setup done");
       }
       io.to(userSocket).emit("updated-status", {
         status: updatedDoc?.status,

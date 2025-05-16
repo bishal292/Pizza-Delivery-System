@@ -50,7 +50,6 @@ export const logIn = async (req, res, next) => {
 
 export const signUp = async (req, res, next) => {
   try {
-    console.log(req.body);
     const { name, email, password, secretKey } = req.body;
     if (!name || !email || !password || !secretKey)
       return res.status(400).send("Please provide all fields");
@@ -110,10 +109,7 @@ export const logOut = async (req, res, next) => {
 export const changePassword = async (req, res, next) => {
   try {
     const userId = req.userId;
-    console.log(userId);
     const { oldPassword, newPassword } = req.body;
-
-    console.log(oldPassword);
 
     if (!userId) return res.status(400).send("You are not logged in");
 

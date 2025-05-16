@@ -9,7 +9,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppStore } from "@/Store/store";
 import { apiClient } from "@/utils/api-client";
-import { ADMIN_AUTH_FORGOT_PASS, ADMIN_AUTH_LOGIN, ADMIN_AUTH_RESET_PASS, ADMIN_AUTH_SIGNUP } from "@/utils/constant";
+import {
+  ADMIN_AUTH_FORGOT_PASS,
+  ADMIN_AUTH_LOGIN,
+  ADMIN_AUTH_RESET_PASS,
+  ADMIN_AUTH_SIGNUP,
+} from "@/utils/constant";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Loader } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -28,6 +33,7 @@ const AdminAuth = ({ action }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpgenerated, setOtpgenerated] = useState(false);
+  const [cookieError, setCookieError] = useState(false);
 
   useEffect(() => {
     if (userInfo && userInfo.role === "admin") {
@@ -35,6 +41,25 @@ const AdminAuth = ({ action }) => {
     }
     setLoading(false);
   }, [userInfo]);
+
+  /**
+   * Check if cookies are blocked and handle the response accordingly.
+   * If cookies are blocked, set the cookieError state to true.
+   */
+  const handleCookieCheck = async () => {
+    try {
+      const response = await apiClient.get(GET_USER_INFO_ROUTE, {
+        withCredentials: true,
+      });
+      if (response.status === 200 && response.data) {
+        setUserInfo(response.data);
+        navigate("/admin/dashboard");
+      }
+    } catch (err) {
+      setCookieError(true);
+      throw new Error("Cookie blocked");
+    }
+  };
 
   const validateLogin = () => {
     if (!email.length) {
@@ -94,10 +119,8 @@ const AdminAuth = ({ action }) => {
           password,
         });
         if (response.status === 200 && response.data) {
-          setUserInfo(response.data);
-
-          toast.success("Logged in successfully");
-          navigate("/admin/dashboard");
+          toast.success("Login Successful");
+          await handleCookieCheck();
         }
       } catch (error) {
         console.error("Error during login:", error);
@@ -131,9 +154,8 @@ const AdminAuth = ({ action }) => {
           secretKey,
         });
         if (response.status === 201 && response.data) {
-          setUserInfo(response.data);
           toast.success("Admin Created successfully");
-          navigate("/admin/dashboard");
+          await handleCookieCheck();
         }
       } catch (error) {
         console.error("Error during Signup :", error);
@@ -274,117 +296,147 @@ const AdminAuth = ({ action }) => {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="login" className="flex gap-3 flex-col">
-                    <Input
-                      placeholder="Enter Email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="mt-7 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <Input
-                      placeholder="Enter Password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-
-                    <Link
-                      to="/admin/auth/forgot"
-                      className="text-indigo-600 text-sm font-bold"
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleLogin();
+                      }}
+                      className="flex flex-col gap-3"
                     >
-                      Forgot password?
-                    </Link>
-                    <div>
-                      Don't have an account?{" "}
+                      <Input
+                        placeholder="Enter Email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-7 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+                      <Input
+                        placeholder="Enter Password"
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+
                       <Link
-                        to="/admin/auth/signup"
-                        className="text-indigo-600 text-sm font-bold"
+                        to="/admin/auth/forgot"
+                        className="text-orange-600 text-sm font-bold"
                       >
-                        Register Here..
+                        Forgot password?
                       </Link>
-                    </div>
+                      <div>
+                        Don't have an account?{" "}
+                        <Link
+                          to="/admin/auth/signup"
+                          className="text-orange-600 text-sm font-bold"
+                        >
+                          Register Here..
+                        </Link>
+                      </div>
 
-                    <Button
-                      className="w-full bg-indigo-600 text-white py-2 rounded-md mt-4"
-                      onClick={handleLogin}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Please Wait..." : "Login"}
-                    </Button>
+                      <Button
+                        className="w-full bg-orange-600 text-white py-2 rounded-md mt-4 hover:bg-orange-700"
+                        type="submit"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Please Wait..." : "Login"}
+                      </Button>
+                    </form>
                   </TabsContent>
                   <TabsContent value="signup" className="flex gap-3 flex-col">
-                    <Input
-                      placeholder="Enter name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      type="text"
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <Input
-                      placeholder="Enter email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <Input
-                      placeholder="Admin Secret Key"
-                      type="password"
-                      value={secretKey}
-                      onChange={(e) => setSecretKey(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <Input
-                      placeholder="Enter password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <Input
-                      placeholder="Confirm password"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-
-                    <div>
-                      Already have an account?{" "}
-                      <Link
-                        to="/admin/auth/login"
-                        className="text-indigo-600 text-sm font-bold"
-                      >
-                        Login Here..
-                      </Link>
-                    </div>
-
-                    <Button
-                      className="w-full bg-indigo-600 text-white py-2 rounded-md mt-4"
-                      onClick={handleSignup}
-                      disabled={isSubmitting}
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSignup();
+                      }}
+                      className="flex flex-col gap-3"
                     >
-                      {isSubmitting ? "Signing Up..." : "Sign Up"}
-                    </Button>
+                      <Input
+                        placeholder="Enter name"
+                        value={name}
+                        required
+                        onChange={(e) => setName(e.target.value)}
+                        type="text"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+                      <Input
+                        placeholder="Enter email"
+                        type="email"
+                        value={email}
+                        required
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+                      <Input
+                        placeholder="Admin Secret Key"
+                        type="password"
+                        value={secretKey}
+                        required
+                        onChange={(e) => setSecretKey(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+                      <Input
+                        placeholder="Enter password"
+                        type="password"
+                        value={password}
+                        required
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+                      <Input
+                        placeholder="Confirm password"
+                        type="password"
+                        value={confirmPassword}
+                        required
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      />
+
+                      <div>
+                        Already have an account?{" "}
+                        <Link
+                          to="/admin/auth/login"
+                          className="text-orange-600 text-sm font-bold"
+                        >
+                          Login Here..
+                        </Link>
+                      </div>
+
+                      <Button
+                        className="w-full bg-orange-600 text-white py-2 rounded-md mt-4 hover:bg-orange-700"
+                        type="submit"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Signing Up..." : "Sign Up"}
+                      </Button>
+                    </form>
                   </TabsContent>
                 </Tabs>
               );
             case "forgot":
               return (
-                <div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleForgotPassword();
+                  }}
+                  className="flex flex-col gap-3"
+                >
                   <Input
                     placeholder="Enter email"
                     type="email"
                     value={email}
+                    required
                     onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1 mb-3 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 mb-3 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                   />
                   <div className="my-2">
                     Remember your Password?
                     <Link
                       to="/admin/auth/login"
-                      className="text-indigo-600 text-sm font-bold"
+                      className="text-orange-600 text-sm font-bold"
                     >
                       Login Here..
                     </Link>
@@ -393,27 +445,35 @@ const AdminAuth = ({ action }) => {
                     Already have an OTP ?{" "}
                     <Link
                       to="/admin/auth/resetPassword"
-                      className="text-indigo-600 text-sm font-bold"
+                      className="text-orange-600 text-sm font-bold"
                     >
                       Click Here..
                     </Link>
                   </div>
                   <Button
-                    className="w-full bg-indigo-600 text-white py-2 rounded-md mt-4"
-                    onClick={handleForgotPassword}
+                    className="w-full bg-orange-600 text-white py-2 rounded-md mt-4 hover:bg-orange-700"
+                    type="submit"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Generating OTP..." : "Generate OTP"}
                   </Button>
-                </div>
+                </form>
               );
             case "resetPassword":
               return (
-                <>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleResetPassword();
+                  }}
+                  className="flex flex-col gap-3"
+                >
                   <div className="flex flex-col gap-5 w-full">
                     <InputOTP
                       maxLength={6}
                       pattern={REGEXP_ONLY_DIGITS}
+                      required
+                      autoFocus
                       value={otp}
                       onChange={(value) => setOtp(value)}
                     >
@@ -431,17 +491,20 @@ const AdminAuth = ({ action }) => {
                     </InputOTP>
 
                     <Input
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter Email"
                     />
                     <Input
                       value={password}
+                      required
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter new Password"
                     />
                     <Input
                       value={confirmPassword}
+                      required
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm Password"
                     />
@@ -450,19 +513,19 @@ const AdminAuth = ({ action }) => {
                     Didn't receive OTP?
                     <Link
                       to="/admin/auth/forgot"
-                      className="text-indigo-600 text-sm font-bold"
+                      className="text-orange-600 text-sm font-bold"
                     >
                       Resend OTP
                     </Link>
                   </div>
                   <Button
-                    className="w-full bg-indigo-600 text-white py-2 rounded-md mt-4"
-                    onClick={handleResetPassword}
+                    className="w-full bg-orange-600 text-white py-2 rounded-md mt-4 hover:bg-orange-700"
+                    type="submit"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Submitting Request..." : "Submit"}
                   </Button>
-                </>
+                </form>
               );
             default:
               return <h1>Invalid Action</h1>;

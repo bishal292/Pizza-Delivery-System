@@ -46,7 +46,6 @@ const AuthRoutes = ({ children }) => {
 const AuthWrapper = ({ Component }) => {
   const { action } = useParams();
   const validActions = ["login", "signup", "forgot", "resetPassword"];
-  console.log(action);
 
   if (!validActions.includes(action)) {
     return <Navigate to="/pizzeria/auth/login" replace />;

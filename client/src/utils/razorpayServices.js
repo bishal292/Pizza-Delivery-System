@@ -6,7 +6,6 @@ export const handleCompletePayment = async (userInfo, orderId, setIsSubmitting) 
   try {
     setIsSubmitting(true);
     const response = await apiClient.get(`${USER_PAYMENT_ROUTE}?id=${orderId}`, {}, { withCredentials: true });
-    console.log("Payment response:", response);
     if (response.status === 200) {
       toast.success("Payment Initiated..");
       await openRazorPayScreenUI(userInfo, response.data.order);
@@ -35,8 +34,6 @@ export async function paymentVerification(response) {
       },
       { withCredentials: true }
     );
-
-    console.log("Payment -verification res : ", verificationResponse);
     if (verificationResponse.status === 200) {
       toast.success("Payment verified and order placed successfully!");
       window.location.reload();
@@ -90,6 +87,6 @@ export async function openRazorPayScreenUI(userInfo,order) {
       console.error("Razorpay SDK not loaded properly.");
     }
   } catch (error) {
-    console.log("Error Occurred during opening razorpay screen",error)
+    console.error("Error Occurred during opening razorpay screen",error)
   }
 }

@@ -48,7 +48,6 @@ const UserHome = () => {
 
   const handleAddToCart = (pizza) => {
     addToCart(pizza);
-    console.log("Pizza added to cart", pizza);
     addToServerCart(pizza);
     toast.success("Pizza added to cart");
   };

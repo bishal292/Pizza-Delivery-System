@@ -93,7 +93,6 @@ export const refundOrder = async (razorpayOrderId) => {
     const order = await instance.orders.fetch(razorpayOrderId);
 
     if (order.status !== "paid") {
-      console.log("Order is not paid. No refund required.");
       return {
         success: false,
         message: "Order is not paid, no refund needed.",
@@ -103,7 +102,6 @@ export const refundOrder = async (razorpayOrderId) => {
     const payments = await instance.orders.fetchPayments(razorpayOrderId);
 
     if (payments.items.length === 0) {
-      console.log("No payments found for this order.");
       return { success: false, message: "No payments found." };
     }
 
@@ -118,7 +116,6 @@ export const refundOrder = async (razorpayOrderId) => {
       },
     });
 
-    console.log("Refund successful:", refund);
     return { success: true, message: "Refund processed successfully.", refund };
   } catch (error) {
     console.error("Error processing refund:", error);
@@ -139,7 +136,6 @@ export const checkOrderStatus = async (razorpayOrderId) => {
     if (!razorpayOrder) {
       return { success: false, message: "Order not found in Razorpay." };
     }
-    console.log(razorpayOrder);
     return {
       success: true,
       isPaid: razorpayOrder?.status === "paid" ,

@@ -168,7 +168,6 @@ export const removeFromCart = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { id: pizzaId, idx: index, csm: customizations } = req.query;
-    console.log(pizzaId, index, customizations);
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) {
