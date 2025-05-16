@@ -230,10 +230,3 @@ export const getTotalEarnings = async (type = "today") => {
     return { success: false, message: `Failed to fetch ${type} earnings.`, error };
   }
 };
-
-
-
-
-// const response = await getTotalEarnings("lifetime");
-// const response2 = await getTotalEarnings("today");
-//  console.log(response,response2);
