@@ -9,47 +9,47 @@ This is a full-stack pizza delivery application built using the **MERN Stack** (
 > 🚀 Deployed at: [yet to be deployed]()
 
 ---
-## 📸 Snapshots
+## 📸 SnapShots
 
 ### 🔐 AUTH
 
-- ![User Login](./snapshots/userAuth.png) — User login screen
-- ![User Signup](./snapshots/userAuthSignup.png) — User registration/signup form
-- ![Forgot Password](./snapshots/userauthforgot.png) — Forgot password page with OTP request
-- ![Reset Password](./snapshots/userauthreset.png) — Reset password using OTP screen
-- ![User Password Reset](./snapshots/UserResetPass.png) — Password reset confirmation screen
-- ![Admin Signup](./snapshots/adminSighnup.png) — Admin signup screen(Requires Admin Secret Key To signup)
-- ![OTP Mail Received](./snapshots/MailTrapReceivedOtp.png) — OTP received in email inbox (MailTrap)
+- ![User Login](./SnapShots/userAuth.png) — User login screen
+- ![User Signup](./SnapShots/userAuthSignup.png) — User registration/signup form
+- ![Forgot Password](./SnapShots/userauthforgot.png) — Forgot password page with OTP request
+- ![Reset Password](./SnapShots/userauthreset.png) — Reset password using OTP screen
+- ![User Password Reset](./SnapShots/UserResetPass.png) — Password reset confirmation screen
+- ![Admin Signup](./SnapShots/adminSighnup.png) — Admin signup screen(Requires Admin Secret Key To signup)
+- ![OTP Mail Received](./SnapShots/MailTrapReceivedOtp.png) — OTP received in email inbox (MailTrap)
 
 ### 🧑‍💼 ADMIN
 
-- ![Admin Dashboard Overview](./snapshots/AdminDashboard1.png) — Admin dashboard with KPIs and charts
-- ![Admin Revenue Chart](./snapshots/AdminDashboard2.png) — Revenue and order analytics graph
-- ![Add New Pizza](./snapshots/AdminAddnewPizz.png) — Form to create new pizza option
-- ![Update Existing Pizza](./snapshots/AdminUpdatePizza.png) — Form to update existing pizza
-- ![Pizza List](./snapshots/AdminPizzaList.png) — List of all available pizzas
-- ![Delete Pizza Confirmation](./snapshots/AdminDeletePizzaConfirm.png) — Confirm pizza delete modal
-- ![Add New Inventory Item](./snapshots/AdminAdd_new_Inv_item.png) — Add new inventory item to stock
-- ![User List](./snapshots/AdminUsersList.png) — View all registered users
-- ![Edit User](./snapshots/AdminEditUser.png) — Admin can edit user details
-- ![Search User](./snapshots/AdminSearchUser.png) — Search user by name or email
-- ![View Orders](./snapshots/Admin_Viewing_Orders.png) — All user orders for review
-- ![Order Details By ID](./snapshots/AdminOrderdetailsWithId.png) — View detailed order with specific ID
-- ![User Cart View](./snapshots/AdminUserCart.png) — View specific user’s cart
-- ![User Orders Overview](./snapshots/AdminUserOrdersList.png) — View list of orders placed by a user
+- ![Admin Dashboard Overview](./SnapShots/AdminDashboard1.png) — Admin dashboard with KPIs and charts
+- ![Admin Revenue Chart](./SnapShots/AdminDashboard2.png) — Revenue and order analytics graph
+- ![Add New Pizza](./SnapShots/AdminAddnewPizz.png) — Form to create new pizza option
+- ![Update Existing Pizza](./SnapShots/AdminUpdatePizza.png) — Form to update existing pizza
+- ![Pizza List](./SnapShots/AdminPizzaList.png) — List of all available pizzas
+- ![Delete Pizza Confirmation](./SnapShots/AdminDeletePizzaConfirm.png) — Confirm pizza delete modal
+- ![Add New Inventory Item](./SnapShots/AdminAdd_new_Inv_item.png) — Add new inventory item to stock
+- ![User List](./SnapShots/AdminUsersList.png) — View all registered users
+- ![Edit User](./SnapShots/AdminEditUser.png) — Admin can edit user details
+- ![Search User](./SnapShots/AdminSearchUser.png) — Search user by name or email
+- ![View Orders](./SnapShots/Admin_Viewing_Orders.png) — All user orders for review
+- ![Order Details By ID](./SnapShots/AdminOrderdetailsWithId.png) — View detailed order with specific ID
+- ![User Cart View](./SnapShots/AdminUserCart.png) — View specific user’s cart
+- ![User Orders Overview](./SnapShots/AdminUserOrdersList.png) — View list of orders placed by a user
 
 ### 🧑 USER
 
-- ![User Landing Page](./snapshots/UserLandingPage.png) — Public landing page for users
-- ![Home Page Listing](./snapshots/UserHomePageListingPizzas.png) — Displaying all available pizzas
-- ![Customize Pizza](./snapshots/UserCustomizingPizza.png) — User customizing pizza ingredients
-- ![User Cart](./snapshots/UserViewingCart.png) — User’s cart with pizzas and quantities
-- ![Confirm Order](./snapshots/UserConfirmOrder.png) — Final confirmation before placing order
-- ![Cancel Order With Payment](./snapshots/UserCancelOrderWithPayment.png) — Order cancelled after payment
-- ![Cancel Order Without Payment](./snapshots/userCancelOrderWithoutPayment.png) — Cancelled before payment
-- ![Order Payment Page](./snapshots/OrderPaymentScreen.png) — Razorpay payment integration
-- ![Payment Verified](./snapshots/OrderPaymentVerified.png) — Razorpay payment success confirmation
-- ![User Orders List](./snapshots/UserViewingOrders.png) — Past orders with status and details
+- ![User Landing Page](./SnapShots/UserLandingPage.png) — Public landing page for users
+- ![Home Page Listing](./SnapShots/UserHomePageListingPizzas.png) — Displaying all available pizzas
+- ![Customize Pizza](./SnapShots/UserCustomizingPizza.png) — User customizing pizza ingredients
+- ![User Cart](./SnapShots/UserViewingCart.png) — User’s cart with pizzas and quantities
+- ![Confirm Order](./SnapShots/UserConfirmOrder.png) — Final confirmation before placing order
+- ![Cancel Order With Payment](./SnapShots/UserCancelOrderWithPayment.png) — Order cancelled after payment
+- ![Cancel Order Without Payment](./SnapShots/userCancelOrderWithoutPayment.png) — Cancelled before payment
+- ![Order Payment Page](./SnapShots/OrderPaymentScreen.png) — Razorpay payment integration
+- ![Payment Verified](./SnapShots/OrderPaymentVerified.png) — Razorpay payment success confirmation
+- ![User Orders List](./SnapShots/UserViewingOrders.png) — Past orders with status and details
 
 
 ## ⚒️ Tech Stack
