@@ -9,7 +9,7 @@ import {
   checkPayment,
   createPayment,
   refundOrder,
-} from "../../Services/RazorPay.js";
+} from "../../Services/razorPay.js";
 import { Order } from "../../db/models/Orders.js";
 
 export const getPizzas = async (req, res, next) => {

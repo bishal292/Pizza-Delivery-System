@@ -14,7 +14,7 @@ import {
   completePayment,
 } from "../../Controllers/User/UserMiscControllers.js";
 import { verifyToken } from "../../Middlewares/AuthMiddleware.js";
-import { verifyPayment } from "../../Services/RazorPay.js";
+import { verifyPayment } from "../../Services/razorPay.js";
 
 
 const UserRouter = Router();
