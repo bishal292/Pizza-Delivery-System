@@ -1,9 +1,8 @@
 import { Admin } from "../../db/models/AdminModel.js";
 import bcrypt from "bcrypt";
-import { createToken, sendEmail } from "../../utils/util-functions.js";
+import { createToken, sendEmail,checkPasswordStrength } from "../../utils/util-functions.js";
 import validator from "validator";
 import { configDotenv } from "dotenv";
-import { checkPasswordStrength } from "../../utils/util-functions.js";
 import crypto from "crypto";
 import BlockedCookies from "../../db/models/BlockedCookies.js";
 
