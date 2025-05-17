@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import UserHeader from "@/components/UserHeader";
 import React from "react";
 import { Outlet } from "react-router-dom";
@@ -8,6 +9,7 @@ const UserLayout = () => {
       <div className="overflow-x-hidden">
         <UserHeader />
         <Outlet />
+        <Footer />
       </div>
     </>
   );
