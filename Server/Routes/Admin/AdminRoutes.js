@@ -44,12 +44,16 @@ AdminRouter.patch("/updateproduct", verifyToken, updateProduct);
 AdminRouter.delete("/deleteproduct", verifyToken, deleteProduct);
 
 // Admin - pizza Routes
+/**
+ *  Used to upload the image of pizza Locally using multer.And Not being used in the deployed version AS Cloudinary is being used.
+ */
 AdminRouter.post(
   "/pizza/upload",
   verifyToken,
   upload.single("image"),
   imageUpload
 );
+
 AdminRouter.get("/get-pizzas", verifyToken, getPizzas);
 AdminRouter.get("/pizza/get-pizza-details", verifyToken, getPizzaDetails);
 AdminRouter.post("/addpizza", verifyToken, addPizza);

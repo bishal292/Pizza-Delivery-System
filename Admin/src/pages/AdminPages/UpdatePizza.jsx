@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { ADMIN_UPDATE_PIZZA, ADMIN_UPLOAD_PIZZA_IMAGE } from "@/utils/constant";
 import { Pizza } from "lucide-react";
 import { apiClient } from "@/utils/api-client";
+import { handleImageUploadLocally } from "@/Services/ImageUpload.service";
 
 const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
   const [updatedPizza, setUpdatedPizza] = useState({
@@ -45,33 +46,19 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
     setIsSubmitting(true);
     try {
       if (updatedPizza.image) {
-        updatedPizza.image = await new Promise((resolve, reject) => {
-          const formData = new FormData();
-          formData.append("image", updatedPizza.image);
-
-          apiClient
-            .post(ADMIN_UPLOAD_PIZZA_IMAGE, formData, { withCredentials: true })
-            .then((response) => {
-              if (response.status === 200) {
-                resolve(response.data.imageUrl);
-              } else {
-                reject(new Error("Failed to upload image"));
-              }
-            })
-            .catch((error) => {
-              reject(error);
-            });
-        });
+        updatedPizza.image = await handleImageUploadLocally(updatedPizza.image); // Upload image to server Locally.
       }
       const response = await apiClient.patch(`${ADMIN_UPDATE_PIZZA}?id=${pizza._id}`, updatedPizza, {
         withCredentials: true,
       });
       if (response.status === 200) {
         toast.success("Pizza Updated Successfully");
+        console.log("Pizza Updated Successfully",response);
         onUpdate(response.data.pizza);
       }
     } catch (error) {
-      toast.error(error.response.data?.message || error.response.data);
+      console.error("Error updating pizza:", error);
+      toast.error(error.response?.data?.message || error.response?.data || "Something Went Wrong");
     } finally {
       setIsSubmitting(false);
     }

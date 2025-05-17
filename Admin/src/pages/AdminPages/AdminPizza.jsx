@@ -13,6 +13,7 @@ import {
 import UpdatePizza from "./UpdatePizza";
 import { Link } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
+import { handleImageUploadLocally } from "@/Services/ImageUpload.service";
 
 const AdminPizza = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -28,7 +29,7 @@ const AdminPizza = () => {
     image: null,
     description: "",
     base: "",
-    size:"",
+    size: "",
     sauce: [],
     cheese: [],
     toppings: [],
@@ -97,29 +98,7 @@ const AdminPizza = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      try {
-        newPizza.image = await new Promise((resolve, reject) => {
-          const formData = new FormData();
-          formData.append("image", newPizza.image);
-
-          apiClient
-            .post(ADMIN_UPLOAD_PIZZA_IMAGE, formData, { withCredentials: true })
-            .then((response) => {
-              if (response.status === 200) {
-                resolve(response.data.imageUrl);
-              } else {
-                reject(new Error("Failed to upload image"));
-              }
-            })
-            .catch((error) => {
-              reject(error);
-            });
-        });
-      } catch (error) {
-        toast.error("Error uploading image");
-        setIsSubmitting(false);
-        return;
-      }
+      newPizza.image = await handleImageUploadLocally(newPizza.image); // -> Used to upload the image locally Using Multer.
       const response = await apiClient.post(ADMIN_ADD_PIZZA, newPizza, {
         withCredentials: true,
       });
@@ -226,8 +205,11 @@ const AdminPizza = () => {
                 <p className="text-gray-700 font-bold mt-2">
                   Size: {pizza?.size?.name}
                 </p>
-                <p >
-                  Price: <span className="text-green-600 font-bold">₹ {pizza.price}</span>
+                <p>
+                  Price:{" "}
+                  <span className="text-green-600 font-bold">
+                    ₹ {pizza.price}
+                  </span>
                 </p>
               </div>
             </Link>

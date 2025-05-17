@@ -5,8 +5,10 @@ import { Pizza } from "../../db/models/PizzaModels.js";
 import { User } from "../../db/models/UserModel.js";
 import { Cart } from "../../db/models/CartModel.js";
 import { Order } from "../../db/models/Orders.js";
-import { getFormattedCartItems } from "../../utils/util-functions.js";
+import { getFormattedCartItems, upload } from "../../utils/util-functions.js";
 import { compare } from "bcrypt";
+import fs from "fs";
+import path from "path";
 
 // Admin Dashboard
 // SUGGESTION: Razorpay method to get total revenue for lifetime and today's can be used for actual earning's data via online
@@ -70,7 +72,7 @@ export const dashboard = async (req, res, next) => {
     startOfDay.setHours(0, 0, 0, 0);
     const todayOrderCancelled = await Order.find({
       status: "cancelled",
-      createdAt: {$gte: startOfDay},
+      createdAt: { $gte: startOfDay },
     }).countDocuments();
 
     const todayOrderCount = await Order.find({
@@ -329,6 +331,12 @@ export const imageUpload = async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 };
+export const deleteImage = async (image) => {
+  const imagePath = path.join(process.cwd(), 'uploads', image);
+  if (fs.existsSync(imagePath)) {
+    fs.unlinkSync(imagePath);
+  }
+};
 
 export const addPizza = async (req, res) => {
   try {
@@ -496,7 +504,11 @@ export const updatePizza = async (req, res, next) => {
     if (base) updatedFields.base = base;
     if (size) updatedFields.size = size;
     if (price) updatedFields.price = price;
-    if (image) updatedFields.image = image;
+    if (image) {
+      updatedFields.image = image;
+      // If the image is being updated, delete the old image from the server
+      await deleteImage(pizza.image);
+    }
     if (description) updatedFields.description = description;
     if (sauce) updatedFields.sauce = sauce;
     if (cheese) updatedFields.cheese = cheese;
@@ -504,7 +516,7 @@ export const updatePizza = async (req, res, next) => {
 
     const updatedPizza = await Pizza.findByIdAndUpdate(id, updatedFields, {
       new: true,
-    });
+    }).populate("size", "name");
     if (!updatedPizza) {
       return res.status(500).send("Error updating pizza");
     }
@@ -531,6 +543,7 @@ export const deletePizza = async (req, res, next) => {
     if (!pizza) {
       return res.status(404).send("Pizza not found");
     }
+    await deleteImage(pizza.image);
     const deletedPizza = await Pizza.findByIdAndDelete(id);
     if (!deletedPizza) {
       return res.status(500).send("Error deleting pizza");

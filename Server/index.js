@@ -8,6 +8,7 @@ import UserRouter from "./Routes/User/UserRoutes.js";
 import { getUserInfo, verifyToken } from "./Middlewares/AuthMiddleware.js";
 import http from "http";
 import { setupSocket } from "./utils/Socket.js";
+import { deleteImage } from "./Controllers/Admin/AdminMiscController.js";
 
 dotenv.config();
 
