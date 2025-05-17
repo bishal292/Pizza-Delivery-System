@@ -4,19 +4,19 @@ import { apiClient } from "@/utils/api-client";
 import { USER_AUTH_LOGOUT } from "@/utils/constant";
 import { useAppStore } from "@/Store/store";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const LogoutButton = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { userInfo, setUserInfo } = useAppStore();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const response = await apiClient.get(USER_AUTH_LOGOUT,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.get(USER_AUTH_LOGOUT, {
+        withCredentials: true,
+      });
       if (response.status === 200) {
         toast.warning("Logged Out Successfully");
         setUserInfo(null);
@@ -29,14 +29,26 @@ const LogoutButton = () => {
   };
   return (
     <div>
-      <Button
-        className="bg-red-500 text-white
+      {/* Show Login button when user is NOT logged in */}
+      {!userInfo || !userInfo.role ? (
+        <Button
+          className="bg-green-500 text-white
+          px-4 py-2 rounded hover:bg-green-800 hover:shadow-lg "
+          onClick={() => navigate("/pizzeria/auth/login")}
+        >
+          Login
+        </Button>
+      ) : (
+        // Show Logout button when user IS logged in
+        <Button
+          className="bg-red-500 text-white
         px-4 py-2 rounded hover:bg-red-800 hover:shadow-lg "
-        onClick={handleLogout}
-        disabled={isLoggingOut}
-      >
-        {isLoggingOut ? "Logging Out..." : "Logout"}
-      </Button>
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? "Logging Out..." : "Logout"}
+        </Button>
+      )}
     </div>
   );
 };

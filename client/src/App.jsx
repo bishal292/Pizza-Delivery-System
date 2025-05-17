@@ -21,8 +21,8 @@ const PrivateRoutes = ({ children }) => {
   const { userInfo } = useAppStore();
   const isAuthenticated = !!userInfo; // If there is userInfo, then isAuthenticated is true
   const isUser = userInfo?.role === "user";
-  
-  if(userInfo === null || userInfo === undefined) {
+
+  if (userInfo === null || userInfo === undefined) {
     return <LoadingScreen />;
   }
   // if user is not authenticated, redirect to login page for the respective user
@@ -66,23 +66,42 @@ const router = createBrowserRouter([
   },
   {
     path: "/pizzeria",
-    element: (
-      <PrivateRoutes>
-        <UserLayout />
-      </PrivateRoutes>
-    ),
+    element: <UserLayout />,
     children: [
       { index: true, element: <Navigate to="home" replace /> },
-      { path: "home", element: <UserHome /> },
-      { path: "orders", element: <UserOrders /> },
-      { path: "cart", element: <UserCart /> },
-      {path: "order/:orderId", element: <OrderDetails />}
-      // { path: "*", element: <Navigate to="home" /> },
+      {
+        path: "home",
+        element: <UserHome />,
+      },
+      {
+        path: "orders",
+        element: (
+          <PrivateRoutes>
+            <UserOrders />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "cart",
+        element: (
+          <PrivateRoutes>
+            <UserCart />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "order/:orderId",
+        element: (
+          <PrivateRoutes>
+            <OrderDetails />
+          </PrivateRoutes>
+        ),
+      }
     ],
   },
   {
     path: "*",
-    element: <Navigate to="/pizzeria/auth/login" />,
+    element: <Navigate to="/pizzeria/home" />,
   },
 ]);
 
@@ -92,7 +111,6 @@ const App = () => {
   const [loading, setLoading] = React.useState(true);
   const [showDelayMessage, setShowDelayMessage] = React.useState(false);
 
-  
   useEffect(() => {
     let delayTimer;
     if (loading) {
@@ -116,7 +134,7 @@ const App = () => {
       } catch (error) {
         setUserInfo({});
         console.error(error.response?.data || error.message);
-      }finally{
+      } finally {
         setLoading(false);
       }
     };
@@ -133,7 +151,9 @@ const App = () => {
         {showDelayMessage && (
           <div className="mt-6 text-center text-gray-600 max-w-md">
             <p>
-              The first loading may take up to <b>30 seconds</b> to start. This is because the server is hosted on a free Render.com tier, which goes inactive after 15 minutes of inactivity and needs to wake up.
+              The first loading may take up to <b>30 seconds</b> to start. This
+              is because the server is hosted on a free Render.com tier, which
+              goes inactive after 15 minutes of inactivity and needs to wake up.
             </p>
           </div>
         )}

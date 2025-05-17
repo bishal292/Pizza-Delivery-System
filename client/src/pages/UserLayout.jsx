@@ -6,9 +6,11 @@ import { Outlet } from "react-router-dom";
 const UserLayout = () => {
   return (
     <>
-      <div className="overflow-x-hidden">
+      <div className="overflow-x-hidden min-h-screen flex flex-col justify-between">
         <UserHeader />
-        <Outlet />
+        <div className="flex-1">
+          <Outlet />
+        </div>
         <Footer />
       </div>
     </>
