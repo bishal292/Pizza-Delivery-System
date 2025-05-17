@@ -1,6 +1,10 @@
 import { User } from "../../db/models/UserModel.js";
 import bcrypt from "bcrypt";
-import { createToken, sendEmail, checkPasswordStrength } from "../../utils/util-functions.js";
+import {
+  createToken,
+  sendEmail,
+  checkPasswordStrength,
+} from "../../utils/util-functions.js";
 import validator from "validator";
 import { configDotenv } from "dotenv";
 import crypto from "crypto";
@@ -214,7 +218,7 @@ export const resetpassword = async (req, res, next) => {
 
     if (!user.resetOTP || Date.now() > user.resetOTPExpires)
       return res.status(400).send("Invalid or Expired OTP, Please try again");
-    const hashedOTP = crypto.createHash("sha256").update(otp).digest('hex');
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
     if (hashedOTP !== user.resetOTP)
       return res.status(400).send("Invalid OTP, Please try again");
 
@@ -236,9 +240,10 @@ export const resetpassword = async (req, res, next) => {
 
     // res.status(200).send("Password Reset Successfully! Please login with your new password");
 
-    res.cookie("jwt", createToken(user.email, user._id), {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: true,
+    res.cookie("pds", createToken(user.email, user._id), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
       maxAge,
     });
 

@@ -52,6 +52,7 @@ const AdminAuth = ({ action }) => {
       const response = await apiClient.get(GET_USER_INFO_ROUTE, {
         withCredentials: true,
       });
+      console.log("Response from cookie check:", response);
       if (response.status === 200 && response.data) {
         setUserInfo(response.data);
         navigate("/admin/dashboard");

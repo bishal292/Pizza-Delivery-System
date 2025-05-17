@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppStore } from "./Store/store";
 import {
   createBrowserRouter,
@@ -96,8 +96,40 @@ const router = createBrowserRouter([
   },
 ]);
 
+const MIN_SCREEN_WIDTH = 768; // Tablet breakpoint
+
+const SmallScreenWarning = ({ onClose }) => (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-70">
+    <div className="relative bg-gray-900 rounded-xl p-8 max-w-[90vw] shadow-2xl text-white text-center">
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 bg-gray-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-600 focus:outline-none"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+      <strong>
+        This page is designed for larger screen view and you're visiting this in a smaller device.<br />
+        Please open in a larger screen for better functionality.
+      </strong>
+    </div>
+  </div>
+);
+
 const App = () => {
   const { userInfo, setUserInfo } = useAppStore();
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < MIN_SCREEN_WIDTH);
+  const [warningClosed, setWarningClosed] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < MIN_SCREEN_WIDTH);
+    };
+    window.addEventListener("resize", handleResize);
+    // Initial check
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,7 +149,14 @@ const App = () => {
     }
   }, [userInfo, setUserInfo]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      {isSmallScreen && !warningClosed && (
+        <SmallScreenWarning onClose={() => setWarningClosed(true)} />
+      )}
+      <RouterProvider router={router} />
+    </>
+  );
 };
 
 export default App;

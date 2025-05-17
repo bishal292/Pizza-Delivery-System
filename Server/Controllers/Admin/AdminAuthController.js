@@ -1,6 +1,10 @@
 import { Admin } from "../../db/models/AdminModel.js";
 import bcrypt from "bcrypt";
-import { createToken, sendEmail,checkPasswordStrength } from "../../utils/util-functions.js";
+import {
+  createToken,
+  sendEmail,
+  checkPasswordStrength,
+} from "../../utils/util-functions.js";
 import validator from "validator";
 import { configDotenv } from "dotenv";
 import crypto from "crypto";
@@ -36,11 +40,11 @@ export const logIn = async (req, res, next) => {
     });
 
     res.status(200).json({
-      message:"Logged In as Admin",
-      _id:user._id,
-      name:user.name,
-      email:user.email,
-      role:'admin'
+      message: "Logged In as Admin",
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: "admin",
     });
   } catch (error) {
     console.error(error.message);
@@ -82,11 +86,11 @@ export const signUp = async (req, res, next) => {
     });
 
     res.status(201).json({
-      message:"Admin Created Successfully",
-      _id:newUser._id,
-      name:newUser.name,
-      email:newUser.email,
-      role:'admin'
+      message: "Admin Created Successfully",
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: "admin",
     });
   } catch (error) {
     console.error(error.message);
@@ -154,7 +158,7 @@ export const forgotpassword = async (req, res, next) => {
         .status(400)
         .send("User not found with this email please provide a valid email");
 
-    if (user.resetOTP && (Date.now() < user.resetOTPExpires)) {
+    if (user.resetOTP && Date.now() < user.resetOTPExpires) {
       return res
         .status(409)
         .send(
@@ -176,9 +180,7 @@ export const forgotpassword = async (req, res, next) => {
 
       res
         .status(200)
-        .send(
-          "Reset Password OTP Sent to your email, please check your email"
-        );
+        .send("Reset Password OTP Sent to your email, please check your email");
     } catch (error) {
       console.error(error.message);
       user.passwordResetToken = undefined;
@@ -195,85 +197,88 @@ export const forgotpassword = async (req, res, next) => {
 };
 
 export const resetpassword = async (req, res, next) => {
-   try {
-       const { email, otp, password, confirmPassword } = req.body;
-   
-       if (!email || !otp || !password || !confirmPassword)
-         return res
-           .status(400)
-           .send("Please provide email, OTP, password and confirm password");
-   
-       if (!validator.isEmail(email))
-         return res
-           .status(400)
-           .send("Entered Email is not valid, Please provide a valid email");
-       const user = await Admin.findOne({ email }).select("+password");
-       if (!user)
-         return res
-           .status(400)
-           .send("Admin not found with this email please provide a valid email");
-   
-       if (!user.resetOTP || Date.now() > user.resetOTPExpires)
-         return res.status(400).send("Invalid or Expired OTP, Please try again");
-       const hashedOTP = crypto.createHash("sha256").update(otp).digest('hex');
-       if (hashedOTP !== user.resetOTP)
-         return res.status(400).send("Invalid OTP, Please try again");
-   
-       if (password !== confirmPassword)
-         return res
-           .status(400)
-           .send("Password and Confirm Password must be same.");
-   
-       if (await bcrypt.compare(password, user.password))
-         return res
-           .status(409)
-           .send("New Password cannot be same as old password");
-       // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
-   
-       user.password = password;
-       user.resetOTP = undefined;
-       user.resetOTPExpires = undefined;
-       await user.save();
-   
-       // res.status(200).send("Password Reset Successfully! Please login with your new password");
-   
-       res.cookie("jwt", createToken(user.email, user._id), {
-         secure: process.env.NODE_ENV === "production",
-         sameSite: true,
-         maxAge,
-       });
-   
-       res.status(200).json({
-         message: "Password Reset Successfull! You are logged in.",
-         _id: user._id,
-         name: user.name,
-         email: user.email,
-         role: "user",
-       });
-     } catch (error) {
-       console.error(error.message);
-       res.status(500).send("Internal Server Error");
-     }
+  try {
+    const { email, otp, password, confirmPassword } = req.body;
+
+    if (!email || !otp || !password || !confirmPassword)
+      return res
+        .status(400)
+        .send("Please provide email, OTP, password and confirm password");
+
+    if (!validator.isEmail(email))
+      return res
+        .status(400)
+        .send("Entered Email is not valid, Please provide a valid email");
+    const user = await Admin.findOne({ email }).select("+password");
+    if (!user)
+      return res
+        .status(400)
+        .send("Admin not found with this email please provide a valid email");
+
+    if (!user.resetOTP || Date.now() > user.resetOTPExpires)
+      return res.status(400).send("Invalid or Expired OTP, Please try again");
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+    if (hashedOTP !== user.resetOTP)
+      return res.status(400).send("Invalid OTP, Please try again");
+
+    if (password !== confirmPassword)
+      return res
+        .status(400)
+        .send("Password and Confirm Password must be same.");
+
+    if (await bcrypt.compare(password, user.password))
+      return res
+        .status(409)
+        .send("New Password cannot be same as old password");
+    // checkPasswordStrength(password); // If password strength is less secure then simply respond with a message to improve password and try again.
+
+    user.password = password;
+    user.resetOTP = undefined;
+    user.resetOTPExpires = undefined;
+    await user.save();
+
+    // res.status(200).send("Password Reset Successfully! Please login with your new password");
+
+    res.cookie("pds", createToken(user.email, user._id), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge,
+    });
+
+    res.status(200).json({
+      message: "Password Reset Successfull! You are logged in.",
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: "user",
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
 };
 
 export const AdminInfo = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(400)
+        .send("You are not Authenticated, Try logging in or signing up");
 
-    try {
-        const userId = req.userId;
-        if (!userId) return res.status(400).send("You are not Authenticated, Try logging in or signing up");
+    const user = await Admin.findById(userId).select("_id name email");
+    if (!user) return res.status(400).send("User not found");
 
-        const user = await Admin.findById(userId).select("_id name email");
-        if (!user) return res.status(400).send("User not found");
-
-        res.status(200).json({
-            _id:user._id,
-            name:user.name,
-            email:user.email,
-            role:'admin'
-        });
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");        
-    }
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: "admin",
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
   next();
 };

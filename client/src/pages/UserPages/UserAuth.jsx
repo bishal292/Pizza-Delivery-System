@@ -43,11 +43,13 @@ const UserAuth = ({ action }) => {
       const response = await apiClient.get(GET_USER_INFO_ROUTE, {
         withCredentials: true,
       });
+      console.log("Response from cookie check:", response);
       if (response.status === 200 && response.data) {
         setUserInfo(response.data);
-          navigate("/pizzeria/home");
+        navigate("/pizzeria/home");
       }
     } catch (err) {
+      console.error("Error checking cookies:", err);
       setCookieError(true);
       throw new Error("Cookie blocked");
     }

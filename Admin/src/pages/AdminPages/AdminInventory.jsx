@@ -189,7 +189,7 @@ const AdminInventory = () => {
   if (!isLoaded) {
     return <LoadingScreen message="Fetching Inventory...." />;
   }
-  
+
   return (
     <div className="p-6 font-sans">
       <div className="flex justify-between items-center mb-4">
@@ -203,145 +203,149 @@ const AdminInventory = () => {
         </button>
       </div>
       {inventory.length === 0 ? (
-        <p className=" text-xl flex items-center justify-center text-red-400 ">No items in inventory</p>
+        <p className=" text-xl flex items-center justify-center text-red-400 ">
+          No items in inventory
+        </p>
       ) : (
-        <table className="min-w-full bg-white border border-gray-200 mb-6">
-          <thead>
-            <tr>
-              <th className="py-2 px-4 border-b">Name</th>
-              <th className="py-2 px-4 border-b">Category</th>
-              <th className="py-2 px-4 border-b">Price</th>
-              <th className="py-2 px-4 border-b">Stock</th>
-              <th className="py-2 px-4 border-b">Threshold</th>
-              <th className="py-2 px-4 border-b">Status</th>
-              <th className="py-2 px-4 border-b">Type</th>
-              <th className="py-2 px-4 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory.map((item) => (
-              <tr
-                key={item._id}
-                className={`${
-                  item.stock <= item.threshold && editableItemId !== item._id
-                    ? "bg-red-200"
-                    : ""
-                } ${editableItemId === item._id ? "bg-gray-200" : ""}`}
-              >
-                {editableItemId === item._id ? (
-                  <>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.name}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.category}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <input
-                        className="w-full p-2 text-center border border-gray-300 rounded"
-                        type="number"
-                        name="price"
-                        value={editableItem.price}
-                        onChange={handleEditInputChange}
-                      />
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <input
-                        className="w-full p-2 text-center border border-gray-300 rounded"
-                        type="number"
-                        name="stock"
-                        value={editableItem.stock}
-                        onChange={handleEditInputChange}
-                      />
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <input
-                        className="w-full text-center p-2 border border-gray-300 rounded"
-                        type="number"
-                        name="threshold"
-                        value={editableItem.threshold}
-                        onChange={handleEditInputChange}
-                      />
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.status}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <select
-                        className="w-full p-2 border border-gray-300 rounded"
-                        name="type"
-                        value={editableItem.type}
-                        onChange={handleEditInputChange}
-                      >
-                        <option value="veg">Veg</option>
-                        <option value="non-veg">Non-Veg</option>
-                      </select>
-                    </td>
-                    <td className="py-2 px-4 border-b flex justify-center space-x-2">
-                      <button
-                        disabled={isSubmitting}
-                        className="bg-green-500 text-white px-4 py-2 rounded"
-                        onClick={() => updateItem(item._id)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        disabled={isSubmitting}
-                        className="bg-gray-500 text-white px-4 py-2 rounded"
-                        onClick={() => setEditableItemId(null)}
-                      >
-                        <MdCancel />
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.name}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.category}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.price}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.stock}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.threshold}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.status}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b">
-                      {item.type}
-                    </td>
-                    <td className="py-2 text-center px-4 border-b flex justify-center space-x-2">
-                      <button
-                        disabled={isSubmitting}
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                        onClick={() => {
-                          setEditableItemId(item._id);
-                          setEditableItem(item);
-                        }}
-                      >
-                        Update
-                      </button>
-                      <button
-                        disabled={isSubmitting}
-                        className="bg-red-500 text-white px-4 py-2 rounded"
-                        onClick={() => handleDeleteClick(item._id)}
-                      >
-                        <FaTrash />
-                      </button>
-                    </td>
-                  </>
-                )}
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 mb-6">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b">Name</th>
+                <th className="py-2 px-4 border-b">Category</th>
+                <th className="py-2 px-4 border-b">Price</th>
+                <th className="py-2 px-4 border-b">Stock</th>
+                <th className="py-2 px-4 border-b">Threshold</th>
+                <th className="py-2 px-4 border-b">Status</th>
+                <th className="py-2 px-4 border-b">Type</th>
+                <th className="py-2 px-4 border-b">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {inventory.map((item) => (
+                <tr
+                  key={item._id}
+                  className={`${
+                    item.stock <= item.threshold && editableItemId !== item._id
+                      ? "bg-red-200"
+                      : ""
+                  } ${editableItemId === item._id ? "bg-gray-200" : ""}`}
+                >
+                  {editableItemId === item._id ? (
+                    <>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.name}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.category}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        <input
+                          className="w-full p-2 text-center border border-gray-300 rounded"
+                          type="number"
+                          name="price"
+                          value={editableItem.price}
+                          onChange={handleEditInputChange}
+                        />
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        <input
+                          className="w-full p-2 text-center border border-gray-300 rounded"
+                          type="number"
+                          name="stock"
+                          value={editableItem.stock}
+                          onChange={handleEditInputChange}
+                        />
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        <input
+                          className="w-full text-center p-2 border border-gray-300 rounded"
+                          type="number"
+                          name="threshold"
+                          value={editableItem.threshold}
+                          onChange={handleEditInputChange}
+                        />
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.status}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        <select
+                          className="w-full p-2 border border-gray-300 rounded"
+                          name="type"
+                          value={editableItem.type}
+                          onChange={handleEditInputChange}
+                        >
+                          <option value="veg">Veg</option>
+                          <option value="non-veg">Non-Veg</option>
+                        </select>
+                      </td>
+                      <td className="py-2 px-4 border-b flex justify-center space-x-2">
+                        <button
+                          disabled={isSubmitting}
+                          className="bg-green-500 text-white px-4 py-2 rounded"
+                          onClick={() => updateItem(item._id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          disabled={isSubmitting}
+                          className="bg-gray-500 text-white px-4 py-2 rounded"
+                          onClick={() => setEditableItemId(null)}
+                        >
+                          <MdCancel />
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.name}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.category}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.price}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.stock}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.threshold}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.status}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b">
+                        {item.type}
+                      </td>
+                      <td className="py-2 text-center px-4 border-b flex justify-center space-x-2">
+                        <button
+                          disabled={isSubmitting}
+                          className="bg-blue-500 text-white px-4 py-2 rounded"
+                          onClick={() => {
+                            setEditableItemId(item._id);
+                            setEditableItem(item);
+                          }}
+                        >
+                          Update
+                        </button>
+                        <button
+                          disabled={isSubmitting}
+                          className="bg-red-500 text-white px-4 py-2 rounded"
+                          onClick={() => handleDeleteClick(item._id)}
+                        >
+                          <FaTrash />
+                        </button>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {/* Confirmation Overlay */}
       {confirmationItemId && (
