@@ -107,7 +107,7 @@ const OrderDetails = () => {
                   {item.pizza.name} {isCustomized && " (Customized)"}
                 </h2>
                 <img
-                  src={`${HOST}/pizza-image/${item.pizza.image}`}
+                  src={`${item.pizza.image}`}
                   alt="Pizza"
                   className="w-full h-40 object-cover rounded-lg my-3"
                 />

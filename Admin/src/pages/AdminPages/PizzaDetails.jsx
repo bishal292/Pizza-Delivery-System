@@ -59,7 +59,7 @@ const PizzaDetails = () => {
         <div className="p-6 font-sans">
             <h1 className="text-2xl font-bold">{pizza.name}</h1>
             <img
-                src={`${HOST}/pizza-image/${pizza.image}`}
+                src={`${pizza.image}`}
                 alt={pizza.name}
                 className="w-full h-64 object-contain mb-4"
             />

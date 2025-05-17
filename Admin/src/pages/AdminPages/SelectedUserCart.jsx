@@ -81,7 +81,7 @@ const UserCart = () => {
                     {item.pizza.name} {customized && " (Customized)"}
                   </h2>
                   <img
-                    src={`${HOST}/pizza-image/${item.pizza.image}`}
+                    src={`${item.pizza.image}`}
                     alt="Pizza"
                     className="w-full h-32 object-cover mb-2 rounded"
                   />

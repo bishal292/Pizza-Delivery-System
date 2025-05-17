@@ -122,7 +122,7 @@ const UserOrders = () => {
 
                 <div className="relative">
                   <img
-                    src={`${HOST}/pizza-image/${order.image}`}
+                    src={`${order.image}`}
                     alt="Order"
                     className="w-full h-44 object-cover"
                     onError={(e) => (e.target.src = "/fallback-image.jpg")}
