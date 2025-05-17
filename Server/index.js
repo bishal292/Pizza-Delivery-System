@@ -58,3 +58,5 @@ server.listen(port, () => {
 
 
 setupSocket(server);
+
+export default app;

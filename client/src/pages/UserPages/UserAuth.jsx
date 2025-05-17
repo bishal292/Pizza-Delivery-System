@@ -30,6 +30,7 @@ const UserAuth = ({ action }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpgenerated, setOtpgenerated] = useState(false);
+  const [cookieError, setCookieError] = useState(false);
 
 
     /**
@@ -118,8 +119,6 @@ const UserAuth = ({ action }) => {
           } else {
             toast.error("An unknown error occurred");
           }
-        } else {
-          toast.error("Network error. Please try again later.");
         }
       } finally {
         setIsSubmitting(false);
@@ -496,6 +495,18 @@ const UserAuth = ({ action }) => {
               return <h1>Invalid Action</h1>;
           }
         })()}
+        {cookieError && (
+            <div className="h-full w-full flex items-center justify-center relative z-50">
+              <CookieWarning>
+                <button
+                  className="absolute top-2 right-2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-50"
+                  onClick={() => setCookieError(false)}
+                >
+                  ✕
+                </button>
+              </CookieWarning>
+            </div>
+          )}
       </div>
     </div>
   );

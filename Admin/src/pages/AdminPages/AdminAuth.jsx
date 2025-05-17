@@ -1,3 +1,4 @@
+import CookieWarning from "@/components/CookieWarning";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -531,6 +532,18 @@ const AdminAuth = ({ action }) => {
               return <h1>Invalid Action</h1>;
           }
         })()}
+        {cookieError && (
+            <div className="h-full w-full flex items-center justify-center relative z-50">
+              <CookieWarning>
+                <button
+                  className="absolute top-2 right-2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-50"
+                  onClick={() => setCookieError(false)}
+                >
+                  ✕
+                </button>
+              </CookieWarning>
+            </div>
+          )}
       </div>
     </div>
   );
