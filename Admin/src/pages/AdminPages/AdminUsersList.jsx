@@ -264,14 +264,33 @@ const AdminUsersList = () => {
                   >
                     <td className="p-3">{index + 1}</td>
                     <td className="p-3">{user.name}</td>
-                    <td className="p-3">{user.email}</td>
-                    <td className="p-3">{user.totalOrder}</td>
-                    <td className="p-3">
+                    <td className="text-blue-500 p-3 text-center">
+                      <a
+                        href={`mailto:${user.email}`}
+                        className="hover:text-orange-700 "
+                      >
+                        {user.email}
+                      </a>
+                    </td>
+                    <td className="p-3 text-center">
+                      {user.totalOrder > 0 ? (
+                        <Link
+                          to={`/admin/user/orders/${user.id}`}
+                          className="text-blue-500 underline   hover:text-orange-700"
+                        >
+                          {" "}
+                          {user.totalOrder}
+                        </Link>
+                      ) : (
+                        user.totalOrder
+                      )}
+                    </td>
+                    <td className="p-3 text-center">
                       {user.cart ? (
                         <Link
-                          href={`/admin/cart/${user.cart}`}
-                          onClick={() => handleCartClick(user.cart)}
-                          className="text-blue-500 underline"
+                          to={`/admin/cart/${user.cart}`}
+                          // onClick={() => handleCartClick(user.cart)}
+                          className="text-blue-500 underline   hover:text-orange-700"
                         >
                           View Cart
                         </Link>
@@ -306,7 +325,7 @@ const AdminUsersList = () => {
       )}
 
       {/* Normal Users List */}
-      <h2 className="text-xl font-bold mb-4">All Users</h2>
+      <h2 className="text-xl text-center font-bold mb-4">All Users</h2>
       {users && users.length > 0 ? (
         <table className="w-full border-collapse border border-gray-300 mb-6">
           <thead>
@@ -314,9 +333,13 @@ const AdminUsersList = () => {
               <th className="p-3 border border-gray-300 text-center">#</th>
               <th className="p-3 border border-gray-300 text-center">Name</th>
               <th className="p-3 border border-gray-300 text-center">Email</th>
-              <th className="p-3 border border-gray-300 text-center">Total Orders</th>
+              <th className="p-3 border border-gray-300 text-center">
+                Total Orders
+              </th>
               <th className="p-3 border border-gray-300 text-center">Cart</th>
-              <th className="p-3 border border-gray-300 text-center">Actions</th>
+              <th className="p-3 border border-gray-300 text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -324,12 +347,23 @@ const AdminUsersList = () => {
               <tr key={user.id} className="border-b border-gray-300">
                 <td className="p-3 text-center">{index + 1}</td>
                 <td className="p-3 text-center">{user.name}</td>
-                <td className="text-blue-500 p-3 text-center" ><a href={`mailto:${user.email}`} >{user.email}</a></td>
+                <td className="text-blue-500 p-3 text-center">
+                  <a
+                    href={`mailto:${user.email}`}
+                    className="  hover:text-orange-700 "
+                  >
+                    {user.email}
+                  </a>
+                </td>
                 <td className="p-3 text-center">
                   {user.totalOrder > 0 ? (
-                    <Link to={`/admin/user/orders/${user.id}`}
-                    className="text-blue-500 underline font-bold"
-                    > {user.totalOrder}</Link>
+                    <Link
+                      to={`/admin/user/orders/${user.id}`}
+                      className="text-blue-500 underline   hover:text-orange-700"
+                    >
+                      {" "}
+                      {user.totalOrder}
+                    </Link>
                   ) : (
                     user.totalOrder
                   )}
@@ -339,7 +373,7 @@ const AdminUsersList = () => {
                     <Link
                       to={`/admin/cart/${user.cart}`}
                       // onClick={() => handleCartClick(user.cart)}
-                      className="text-blue-500 underline"
+                      className="text-blue-500 underline   hover:text-orange-700"
                     >
                       View Cart
                     </Link>

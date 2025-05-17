@@ -196,7 +196,7 @@ const AdminInventory = () => {
         <h1 className="text-2xl font-bold">Inventory Items</h1>
         <button
           disabled={isSubmitting}
-          className="bg-green-500 text-white px-4 py-2 rounded"
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
           onClick={() => setIsPopupOpen(true)}
         >
           Add New Item
@@ -323,7 +323,7 @@ const AdminInventory = () => {
                       <td className="py-2 text-center px-4 border-b flex justify-center space-x-2">
                         <button
                           disabled={isSubmitting}
-                          className="bg-blue-500 text-white px-4 py-2 rounded"
+                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
                           onClick={() => {
                             setEditableItemId(item._id);
                             setEditableItem(item);
@@ -333,7 +333,7 @@ const AdminInventory = () => {
                         </button>
                         <button
                           disabled={isSubmitting}
-                          className="bg-red-500 text-white px-4 py-2 rounded"
+                          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
                           onClick={() => handleDeleteClick(item._id)}
                         >
                           <FaTrash />

@@ -203,7 +203,7 @@ const AdminOrders = () => {
                 <td className="p-3">
                   <Link
                     to={`/admin/order/${order._id}`}
-                    className="text-blue-500 underline"
+                    className="text-blue-500 underline  hover:text-orange-700 "
                   >
                     {order?.dailyOrderId !== "N/A"
                       ? order.dailyOrderId
@@ -215,7 +215,7 @@ const AdminOrders = () => {
                     to={`/admin/users-list?id=${
                       order.userEmail || order.userName
                     }`}
-                    className="text-blue-500 text-center underline"
+                    className="text-blue-500 text-center underline   hover:text-orange-700 "
                   >
                     {order?.userName || order?.userEmail}
                   </Link>

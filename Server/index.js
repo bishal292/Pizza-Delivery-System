@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import { connectDB } from "./db/dbConfig.js";
+import { connectDB, getDBConnection } from "./db/dbConfig.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import AdminRouter from "./Routes/Admin/AdminRoutes.js";
@@ -40,6 +40,13 @@ app.use(
   })
 );
 app.use("/pizza-image", express.static("uploads"));
+
+// Middleware to verify Database Connection
+// This middleware will run for every request to the API
+app.use("/api/v1",async (req, res, next) => {
+  await getDBConnection();
+  next();
+});
 
 app.get("/api/v1/auth/get-user-info", verifyToken, getUserInfo);
 
