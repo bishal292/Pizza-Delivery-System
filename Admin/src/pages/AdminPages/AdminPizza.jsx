@@ -206,7 +206,7 @@ const AdminPizza = () => {
           >
             <Link to={`/admin/pizza/${pizza._id}`}>
               <img
-                src={`${HOST}/pizza-image/${pizza.image}`}
+                src={`${pizza.image}`}
                 alt={pizza.name}
                 className="w-full h-48 object-cover"
               />

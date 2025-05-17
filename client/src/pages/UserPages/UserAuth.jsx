@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppStore } from "@/Store/store";
 import { apiClient } from "@/utils/api-client";
 import {
+  GET_LOGGED_USER_INFO,
   USER_AUTH_FORGOT_PASS,
   USER_AUTH_LOGIN,
   USER_AUTH_RESET_PASS,
@@ -40,16 +41,14 @@ const UserAuth = ({ action }) => {
    */
   const handleCookieCheck = async () => {
     try {
-      const response = await apiClient.get(GET_USER_INFO_ROUTE, {
+      const response = await apiClient.get(GET_LOGGED_USER_INFO, {
         withCredentials: true,
       });
-      console.log("Response from cookie check:", response);
       if (response.status === 200 && response.data) {
         setUserInfo(response.data);
         navigate("/pizzeria/home");
       }
     } catch (err) {
-      console.error("Error checking cookies:", err);
       setCookieError(true);
       throw new Error("Cookie blocked");
     }

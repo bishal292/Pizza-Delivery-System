@@ -137,7 +137,7 @@ const UserHome = () => {
               <div className="relative">
                 {/* Pizza Image */}
                 <img
-                  src={`${HOST}/pizza-image/${pizza.image}`}
+                  src={`${pizza.image}`}
                   alt={pizza.name}
                   className="w-full h-36 object-cover rounded-t-xl transition-all duration-300"
                 />

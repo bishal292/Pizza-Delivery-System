@@ -5,9 +5,11 @@ import { Outlet } from 'react-router-dom'
 
 const AdminLayout = () => {
   return (
-    <div className='overflow-x-hidden'>
+    <div className='flex flex-col h-full overflow-x-hidden'>
       <AdminHeader />
-      <Outlet />
+      <div className='flex-1'>
+        <Outlet />
+      </div>
       <Footer />
     </div>
   )

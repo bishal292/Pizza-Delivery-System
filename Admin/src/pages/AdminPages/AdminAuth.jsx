@@ -15,6 +15,7 @@ import {
   ADMIN_AUTH_LOGIN,
   ADMIN_AUTH_RESET_PASS,
   ADMIN_AUTH_SIGNUP,
+  GET_LOGGED_USER_INFO,
 } from "@/utils/constant";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Loader } from "lucide-react";
@@ -49,10 +50,9 @@ const AdminAuth = ({ action }) => {
    */
   const handleCookieCheck = async () => {
     try {
-      const response = await apiClient.get(GET_USER_INFO_ROUTE, {
+      const response = await apiClient.get(GET_LOGGED_USER_INFO, {
         withCredentials: true,
       });
-      console.log("Response from cookie check:", response);
       if (response.status === 200 && response.data) {
         setUserInfo(response.data);
         navigate("/admin/dashboard");

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { ADMIN_UPDATE_PIZZA, ADMIN_UPLOAD_PIZZA_IMAGE } from "@/utils/constant";
 import { Pizza } from "lucide-react";
 import { apiClient } from "@/utils/api-client";
-import { handleImageUploadLocally } from "@/Services/ImageUpload.service";
+import { handleImageUploadCloudinary, handleImageUploadLocally } from "@/Services/ImageUpload.service";
 
 const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
   const [updatedPizza, setUpdatedPizza] = useState({
@@ -46,7 +46,8 @@ const UpdatePizza = ({ pizza, inventory, onClose, onUpdate }) => {
     setIsSubmitting(true);
     try {
       if (updatedPizza.image) {
-        updatedPizza.image = await handleImageUploadLocally(updatedPizza.image); // Upload image to server Locally.
+        // updatedPizza.image = await handleImageUploadLocally(updatedPizza.image); // Upload image to server Locally.
+        updatedPizza.image = await handleImageUploadCloudinary(updatedPizza.image); // Upload image to cloudinary.
       }
       const response = await apiClient.patch(`${ADMIN_UPDATE_PIZZA}?id=${pizza._id}`, updatedPizza, {
         withCredentials: true,
