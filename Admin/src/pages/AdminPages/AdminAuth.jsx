@@ -132,8 +132,6 @@ const AdminAuth = ({ action }) => {
           } else {
             toast.error("An unknown error occurred");
           }
-        } else {
-          toast.error("Network error. Please try again later.");
         }
       } finally {
         setIsSubmitting(false);

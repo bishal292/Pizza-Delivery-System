@@ -28,9 +28,10 @@ export const logIn = async (req, res, next) => {
 
     if (!auth) return res.status(401).send("Invalid Credentials");
 
-    res.cookie("jwt", createToken(user.email, user._id), {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: false,
+    res.cookie("pds", createToken(user.email, user._id), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
       maxAge,
     });
 
@@ -73,9 +74,10 @@ export const signUp = async (req, res, next) => {
     const newUser = await Admin.create({ name, email, password });
     if (!newUser) return res.status(500).send("Internal Server Error");
 
-    res.cookie("jwt", createToken(newUser.email, newUser._id), {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: false,
+    res.cookie("pds", createToken(newUser.email, newUser._id), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
       maxAge,
     });
 
@@ -96,8 +98,8 @@ export const logOut = async (req, res, next) => {
   try {
     const userId = req.userId;
     if (!userId) return res.status(400).send("You are not logged in");
-    res.clearCookie("jwt");
-    BlockedCookies.create({ cookie: req.cookies.jwt });
+    res.clearCookie("pds");
+    BlockedCookies.create({ cookie: req.cookies.pds });
     res.status(200).send("Logged Out Successfully");
   } catch (error) {
     console.error(error.message);

@@ -19,6 +19,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
+import CookieWarning from "@/components/CookieWarning";
 
 const UserAuth = ({ action }) => {
   const { userInfo, setUserInfo } = useAppStore();

@@ -13,7 +13,10 @@ import {
 import UpdatePizza from "./UpdatePizza";
 import { Link } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
-import { handleImageUploadLocally } from "@/Services/ImageUpload.service";
+import {
+  handleImageUploadCloudinary,
+  handleImageUploadLocally,
+} from "@/Services/ImageUpload.service";
 
 const AdminPizza = () => {
   const [pizzas, setPizzas] = useState([]);
@@ -78,7 +81,7 @@ const AdminPizza = () => {
     setNewPizza({ ...newPizza, [name]: value });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     setNewPizza({ ...newPizza, image: e.target.files[0] });
   };
 
@@ -98,7 +101,17 @@ const AdminPizza = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      newPizza.image = await handleImageUploadLocally(newPizza.image); // -> Used to upload the image locally Using Multer.
+      // newPizza.image = await handleImageUploadLocally(newPizza.image); // -> Used to upload the image locally Using Multer.
+
+      // Upload image to Cloudinary
+      const cloudResponse = await handleImageUploadCloudinary(newPizza.image);
+
+      if(!cloudResponse) {
+        toast.error("Error uploading image");
+        return;
+      }
+
+      newPizza.image = cloudResponse;
       const response = await apiClient.post(ADMIN_ADD_PIZZA, newPizza, {
         withCredentials: true,
       });

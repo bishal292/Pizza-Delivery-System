@@ -6,7 +6,7 @@ import BlockedCookies from "../db/models/BlockedCookies.js";
 dotenv.config();
 
 export const verifyToken = async (req, res, next) => {
-    const token = req.cookies.jwt;
+    const token = req.cookies.pds;
 
     if(!token) return res.status(401).send("You are not Authenticated.");
     const cookiee = await BlockedCookies.findOne({cookie: token});
