@@ -37,6 +37,5 @@ createRoot(document.getElementById("root")).render(
       <App />
     </SocketProvider>
     {/* </StrictMode> */}
-    ,
   </>
 );
